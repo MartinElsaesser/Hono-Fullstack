@@ -7,6 +7,8 @@ import TodoApp, { type Todo } from "./components/TodoApp.js";
 import Counter from "./components/Counter.js";
 import Island from "./islands/server.js";
 import apiRouter from "./routers/apiRouter.js";
+import App from "./components/App.js";
+import { getAllTodos } from "./db/services/TodoService.js";
 
 const app = new Hono();
 
@@ -20,7 +22,7 @@ app.get(
 			return (
 				<html>
 					<head>
-						<link rel="stylesheet" href="/static/css/app.css" />
+						<link rel="stylesheet" href="/static/css/index.css" />
 					</head>
 					<body>
 						{children}
@@ -37,19 +39,9 @@ app.get(
 const apiRoutes = app.route("/api", apiRouter);
 
 /* adhoc routes */
-app.get("/", c => {
-	return c.render(
-		<>
-			<h2>Counter 1</h2>
-			<Island>
-				<Counter $count={4}></Counter>
-			</Island>
-			<h2>Counter 2</h2>
-			<Island>
-				<Counter $count={2}></Counter>
-			</Island>
-		</>
-	);
+app.get("/", async c => {
+	const todos = await getAllTodos();
+	return c.render(<App $todos={todos} />);
 });
 
 app.get("/todos", c => {
