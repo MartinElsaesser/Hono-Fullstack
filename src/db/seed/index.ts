@@ -33,4 +33,5 @@ void (async function seed() {
 			},
 		])
 		.execute();
+	console.log("Seeded database with initial data");
 })();
