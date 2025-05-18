@@ -6,6 +6,7 @@ const buildOptions = {
 	entryPoints: ["src/islands/client.tsx"],
 	bundle: true,
 	minify: false,
+	sourcemap: "inline",
 	format: "esm",
 	outdir: "/static/js/build",
 	chunkNames: "[name]-[hash]",
