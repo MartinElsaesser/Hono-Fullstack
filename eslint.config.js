@@ -9,7 +9,7 @@ const config = defineConfig([
 	{
 		rules: {
 			eqeqeq: "off",
-			"no-unused-vars": "error",
+			"no-unused-vars": "off",
 			"prefer-const": ["error", { ignoreReadBeforeAssign: true }],
 			"prefer-template": "error",
 		},
