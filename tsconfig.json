@@ -8,9 +8,11 @@
 		"strict": true,
 		"skipLibCheck": true,
 		"esModuleInterop": true,
+		"verbatimModuleSyntax": true,
 		"types": ["node"],
 		"jsx": "react-jsx",
 		"jsxImportSource": "react",
 		"sourceMap": true
-	}
+	},
+	"exclude": ["node_modules"]
 }
