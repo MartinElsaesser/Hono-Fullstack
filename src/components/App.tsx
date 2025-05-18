@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { startTransition, useCallback, useOptimistic, useState } from "react";
 import { fetchApi, honoClient } from "../clients/hono.js";
 import {
 	DndContext,
@@ -33,65 +33,111 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 	const canCreateTodo = headline.length > 0 && description.length > 0;
 
 	const [todos, setTodos] = useState($todos);
+	const [optimisticTodos, setOptimisticTodos] = useOptimistic<SelectTodo[], SelectTodo[]>(
+		todos,
+		(_state, newOptimisticTodos) => newOptimisticTodos
+	);
 
-	const handleDoneChanged = useCallback(async (todo: SelectTodo) => {
-		const response = await honoClient.api.todos[":todoId"].$patch({
-			param: { todoId: todo.id.toString() },
-			json: {
-				done: !todo.done,
-			},
-		});
-		if (!response.ok) throw new Error("Failed to toggle todo done status");
-		const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get, input: {} });
-		setTodos(allTodos);
-	}, []);
-	const handleDragEnd = useCallback(async (event: DragEndEvent) => {
-		const { active, over } = event;
-
-		if (active.id !== over.id) {
-			const fromId = active.id as number;
-			const toId = over!.id as number;
-
-			// const fromTodoIdx = todos.findIndex(todo => todo.id === fromId);
-			// const toTodoIdx = todos.findIndex(todo => todo.id === toId);
-
-			const response = await honoClient.api.todos["@arrayMove"].$patch({
-				json: { toId, fromId },
+	const handleDoneChanged = useCallback(
+		async (todo: SelectTodo) => {
+			const newOptimisticTodos = optimisticTodos.map(t =>
+				t.id === todo.id ? { ...t, done: !t.done } : t
+			);
+			startTransition(async () => {
+				setOptimisticTodos(newOptimisticTodos);
+				const response = await honoClient.api.todos[":todoId"].$patch({
+					param: { todoId: todo.id.toString() },
+					json: {
+						done: !todo.done,
+					},
+				});
+				// if (!response.ok)
+				/*eslint prefer-template: "error"*/
+				throw new Error(`Failed to toggle todo done status for tod with id: ${todo.id}`);
+				const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get, input: {} });
+				setTodos(allTodos);
 			});
-			if (!response.ok) throw new Error("Failed to swap todo positions");
-			const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get, input: {} });
-			setTodos(allTodos);
-		}
-	}, []);
-	const handleDelete = useCallback(async (todo: SelectTodo) => {
-		const deleteTodoResponse = await honoClient.api.todos.$delete({
-			json: { todoId: todo.id },
-		});
-		if (!deleteTodoResponse.ok) throw new Error("Failed to delete todo");
-		const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get, input: {} });
-		setTodos(allTodos);
-	}, []);
+		},
+		[optimisticTodos, setOptimisticTodos]
+	);
+	const handleDragEnd = useCallback(
+		(event: DragEndEvent) => {
+			const { active, over } = event;
+			console.log("test");
+
+			if (active.id !== over.id) {
+				startTransition(async () => {
+					const fromId = active.id as number;
+					const toId = over!.id as number;
+
+					const fromTodoIdx = optimisticTodos.findIndex(todo => todo.id === fromId);
+					const toTodoIdx = optimisticTodos.findIndex(todo => todo.id === toId);
+					console.log(arrayMove(optimisticTodos, fromTodoIdx, toTodoIdx));
+
+					setOptimisticTodos(arrayMove(optimisticTodos, fromTodoIdx, toTodoIdx));
+
+					const response = await honoClient.api.todos["@arrayMove"].$patch({
+						json: { toId, fromId },
+					});
+					if (!response.ok) throw new Error("Failed to swap todo positions");
+					const allTodos = await fetchApi({
+						endpoint: honoClient.api.todos.$get,
+						input: {},
+					});
+					setTodos(allTodos);
+				});
+			}
+		},
+		[optimisticTodos, setOptimisticTodos]
+	);
+	const handleDelete = useCallback(
+		(todo: SelectTodo) => {
+			startTransition(async () => {
+				setOptimisticTodos(optimisticTodos.filter(t => t.id !== todo.id));
+
+				const deleteTodoResponse = await honoClient.api.todos.$delete({
+					json: { todoId: todo.id },
+				});
+				if (!deleteTodoResponse.ok) throw new Error("Failed to delete todo");
+				const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get, input: {} });
+				setTodos(allTodos);
+			});
+		},
+		[optimisticTodos, setOptimisticTodos]
+	);
 	const createTodo = useCallback(async () => {
 		if (!canCreateTodo) return;
-
-		const createdTodo = await fetchApi({
-			endpoint: honoClient.api.todos.$post,
-			input: {
-				json: {
-					headline,
-					description,
-					done: false,
-				},
-			},
-		});
-		console.log(createdTodo);
-
-		const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get, input: {} });
-		setTodos(allTodos);
-
 		setDescription("");
 		setHeadline("");
-	}, [canCreateTodo, description, headline]);
+
+		startTransition(async () => {
+			setOptimisticTodos([
+				...optimisticTodos,
+				{
+					created_at: new Date(),
+					description,
+					done: false,
+					headline,
+					id: optimisticTodos.length + 1,
+					position: optimisticTodos.length + 1,
+				},
+			]);
+
+			await fetchApi({
+				endpoint: honoClient.api.todos.$post,
+				input: {
+					json: {
+						headline,
+						description,
+						done: false,
+					},
+				},
+			});
+
+			const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get, input: {} });
+			setTodos(allTodos);
+		});
+	}, [canCreateTodo, setOptimisticTodos, optimisticTodos, description, headline]);
 
 	return (
 		<div className="app">
@@ -135,10 +181,10 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 				onDragEnd={handleDragEnd}
 			>
 				<SortableContext
-					items={todos.map(todo => todo.id)}
+					items={optimisticTodos.map(todo => todo.id)}
 					strategy={verticalListSortingStrategy}
 				>
-					{todos
+					{optimisticTodos
 						.filter(t => (onlyUnfinishedTodos ? t.done === false : true))
 						.map(todo => (
 							<SortableTodo
