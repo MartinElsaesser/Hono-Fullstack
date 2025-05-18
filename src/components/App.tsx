@@ -232,16 +232,9 @@ function SortableTodo({
 	onDoneChanged,
 	onDelete,
 }: {
-	todo: {
-		id: number;
-		created_at: string;
-		description: string;
-		done: boolean;
-		headline: string;
-		position: number;
-	};
-	onDoneChanged: (todo: Todo) => void;
-	onDelete: (todo: Todo) => void;
+	todo: SelectTodo;
+	onDoneChanged: (todo: SelectTodo) => void;
+	onDelete: (todo: SelectTodo) => void;
 }) {
 	const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
 		id: todo.id,
@@ -264,6 +257,7 @@ function SortableTodo({
 			</div>
 			<div className="card--right">
 				<Switch
+					size="medium"
 					round={true}
 					checked={todo.done}
 					onChange={() => onDoneChanged(todo)}
