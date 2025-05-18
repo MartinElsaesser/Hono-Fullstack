@@ -1,4 +1,4 @@
-import { useState, ChangeEvent } from "react";
+import { useState, type ChangeEvent } from "react";
 
 export function useInput(initState: string) {
 	// utility to bind a value to an input
