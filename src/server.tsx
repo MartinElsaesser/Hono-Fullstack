@@ -6,9 +6,11 @@ import { reactRenderer } from "@hono/react-renderer";
 import TodoApp, { type Todo } from "./components/TodoApp.js";
 import Counter from "./components/Counter.js";
 import Island from "./islands/server.js";
+import apiRouter from "./routers/apiRouter.js";
 
 const app = new Hono();
 
+/* register middleware */
 app.get("/static/*", serveStatic({ root: "./" }));
 
 app.get(
@@ -30,6 +32,11 @@ app.get(
 		{ docType: true }
 	)
 );
+
+/* register routers */
+const apiRoutes = app.route("/api", apiRouter);
+
+/* adhoc routes */
 app.get("/", c => {
 	return c.render(
 		<>
@@ -58,9 +65,13 @@ app.get("/todos", c => {
 	);
 });
 
+/* start up server */
 const port = 3000;
 const server = serve({ fetch: app.fetch, port }, info => {
 	console.log(`Server started on http://localhost:${port}`);
 });
 
+/* register socket.io */
 socketIOServer.attach(server);
+
+export type ApiRoutes = typeof apiRoutes;
