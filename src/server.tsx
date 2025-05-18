@@ -1,6 +1,7 @@
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import socketIOServer from "./socket-io-server.js";
 import { reactRenderer } from "@hono/react-renderer";
 import TodoApp, { type Todo } from "./components/TodoApp.js";
@@ -13,6 +14,7 @@ import { getAllTodos } from "./db/services/TodoService.js";
 const app = new Hono();
 
 /* register middleware */
+app.use(cors({ origin: "*" }));
 app.get("/static/*", serveStatic({ root: "./" }));
 
 app.get(
