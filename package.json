@@ -2,6 +2,10 @@
 	"name": "hono-islands",
 	"type": "module",
 	"scripts": {
+		"db-init": "npm run db-init-schema && npm run db-seed",
+		"db-seed": "tsx src/db/seed/index.ts",
+		"db-gen-types": "kysely-codegen --out-file=src/db/schema/db-types.ts",
+		"db-init-schema": "tsx src/db/schema/init-schema.ts",
 		"client-dev": "node build-islands.mjs --watch",
 		"client-build": "node build-islands.mjs",
 		"server-dev": "tsx watch --clear-screen=false src/server.tsx",
