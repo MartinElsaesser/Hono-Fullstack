@@ -1,8 +1,8 @@
 import { Hono, type Context, type TypedResponse } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { parsePositiveIntSchema, positiveIntSchema } from "../schemas/utilitySchemas.js";
-import { todoSchema } from "../schemas/todo.js";
+import { parsePositiveIntSchema, positiveIntSchema } from "../../schemas/utilitySchemas.js";
+import { todoSchema } from "../../schemas/todo.js";
 import {
 	createTodo,
 	getAllTodos,

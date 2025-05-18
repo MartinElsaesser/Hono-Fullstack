@@ -1,7 +1,7 @@
 import pg from "pg";
 import { Kysely, PostgresDialect } from "kysely";
 import type { DB } from "./schema/db-types.js";
-import { envs } from "../config/env.js";
+import { envs } from "../../config/backend/env.js";
 
 // connect to postgres database
 export const pool = new pg.Pool({

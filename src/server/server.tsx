@@ -5,9 +5,9 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import socketIOServer from "./socket-io-server.js";
 import { reactRenderer } from "@hono/react-renderer";
-import Island from "./islands/server.js";
+import Island from "../config/islands/server.js";
 import apiRouter from "./routers/apiRouter.js";
-import App from "./components/App.js";
+import App from "../frontend/components/App.js";
 import { getAllTodos } from "./db/services/TodoService.js";
 import { setTimeout } from "node:timers/promises";
 

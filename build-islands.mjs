@@ -3,7 +3,7 @@ import * as esbuild from "esbuild";
 
 /** @type {import('esbuild').BuildOptions} */
 const buildOptions = {
-	entryPoints: ["src/islands/client.tsx"],
+	entryPoints: ["src/config/islands/client.tsx"],
 	bundle: true,
 	minify: false,
 	sourcemap: "inline",

@@ -4,9 +4,9 @@ import {
 	type InferRequestType,
 	type InferResponseType,
 } from "hono/client";
-import type { ApiRoutes } from "../server.js";
+import type { ApiRoutes } from "../../server/server.js";
 import { parse } from "superjson";
-import type { InferBrandedString } from "../routers/apiRouter.js";
+import type { InferBrandedString } from "../../server/routers/apiRouter.js";
 
 export const honoClient = hc<ApiRoutes>("http://localhost:3000");
 
