@@ -1,4 +1,4 @@
-import { Hono } from "hono";
+import { Hono, type Context, type TypedResponse } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { parsePositiveIntSchema, positiveIntSchema } from "../schemas/utilitySchemas.js";
@@ -12,16 +12,25 @@ import {
 	moveTodoBetweenPositions,
 } from "../db/services/TodoService.js";
 import { stringify } from "superjson";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
 
-function superjsonStringify<T>(data: T): string & { _type: T } {
-	return stringify(data) as string & { _type: T };
+type BrandedString<T> = string & { _type: T };
+function superjsonStringify<T>(data: T): BrandedString<T> {
+	return stringify(data) as BrandedString<T>;
+}
+
+function json<T>(
+	c: Context,
+	data: T
+): Response & TypedResponse<BrandedString<T>, ContentfulStatusCode, "text"> {
+	return c.text(superjsonStringify(data));
 }
 
 const apiRouter = new Hono()
 	// get all todos
 	.get("/todos", async c => {
 		const todos = await getAllTodos();
-		return c.text(superjsonStringify(todos));
+		return json(c, todos);
 	})
 	// get a specific todo
 	.get(
@@ -35,7 +44,7 @@ const apiRouter = new Hono()
 		async c => {
 			const { todoId } = await c.req.valid("param");
 			const todo = await getTodoById({ todoId });
-			return c.text(superjsonStringify(todo));
+			return json(c, todo);
 		}
 	)
 	// create a new todo
@@ -52,7 +61,7 @@ const apiRouter = new Hono()
 		async c => {
 			const insertTodo = await c.req.valid("json");
 			const todo = await createTodo({ todo: insertTodo });
-			return c.text(superjsonStringify(todo));
+			return json(c, todo);
 		}
 	)
 	// shift todo positions for sortable list
@@ -70,7 +79,7 @@ const apiRouter = new Hono()
 		async c => {
 			const { fromId, toId } = await c.req.valid("json");
 			const result = await moveTodoBetweenPositions({ fromId, toId });
-			return c.text(superjsonStringify(result));
+			return json(c, result);
 		}
 	)
 	// update a todo
@@ -89,9 +98,8 @@ const apiRouter = new Hono()
 		async c => {
 			const todoData = await c.req.valid("json");
 			const { todoId } = await c.req.valid("param");
-			// throw new Error(`Cannot update todo ${todoId}`);
 			const todo = await updateTodo({ todoId, todo: todoData });
-			return c.text(superjsonStringify(todo));
+			return json(c, todo);
 		}
 	)
 
@@ -100,8 +108,7 @@ const apiRouter = new Hono()
 		// get validated data
 		const { todoId } = await c.req.valid("json");
 		const todo = await deleteTodo({ todoId });
-
-		return c.text(superjsonStringify(todo));
+		return json(c, todo);
 	});
 
 export default apiRouter;

@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { honoClient } from "../clients/hono.js";
+import { fetchApi, honoClient } from "../clients/hono.js";
 import {
 	DndContext,
 	closestCenter,
@@ -20,7 +20,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Switch } from "./Switch.js";
 import type { SelectTodo } from "../db/schema/db-helper-types.js";
 import { parse } from "superjson";
-import type { InferRequestType, InferResponseType } from "hono/client";
+import type { InferResponseType } from "hono/client";
 
 async function fetchAllTodos() {
 	const allTodosResponse = await honoClient.api.todos.$get({});
@@ -52,7 +52,7 @@ function App({ $todos }: { $todos: SelectTodo[] }) {
 			},
 		});
 		if (!response.ok) throw new Error("Failed to toggle todo done status");
-		const allTodos = await fetchAllTodos();
+		const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get, input: {} });
 		setTodos(allTodos);
 	}, []);
 	const handleDragEnd = useCallback(async (event: DragEndEvent) => {
@@ -69,7 +69,7 @@ function App({ $todos }: { $todos: SelectTodo[] }) {
 				json: { toId, fromId },
 			});
 			if (!response.ok) throw new Error("Failed to swap todo positions");
-			const allTodos = await fetchAllTodos();
+			const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get, input: {} });
 			setTodos(allTodos);
 		}
 	}, []);
@@ -78,22 +78,25 @@ function App({ $todos }: { $todos: SelectTodo[] }) {
 			json: { todoId: todo.id },
 		});
 		if (!deleteTodoResponse.ok) throw new Error("Failed to delete todo");
-		const allTodos = await fetchAllTodos();
+		const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get, input: {} });
 		setTodos(allTodos);
 	}, []);
 	const createTodo = useCallback(async () => {
 		if (!canCreateTodo) return;
 
-		const createdTodoResponse = await honoClient.api.todos.$post({
-			json: {
-				headline,
-				description,
-				done: false,
+		const createdTodo = await fetchApi({
+			endpoint: honoClient.api.todos.$post,
+			input: {
+				json: {
+					headline,
+					description,
+					done: false,
+				},
 			},
 		});
+		console.log(createdTodo);
 
-		if (!createdTodoResponse.ok) throw new Error("Failed to delete todo");
-		const allTodos = await fetchAllTodos();
+		const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get, input: {} });
 		setTodos(allTodos);
 
 		setDescription("");
