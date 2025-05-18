@@ -47,14 +47,12 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 				setOptimisticTodos(newOptimisticTodos);
 				await fetchApi({
 					endpoint: honoClient.api.todos[":todoId"].$patch,
-					input: {
-						param: { todoId: todo.id.toString() },
-						json: {
-							done: !todo.done,
-						},
+					param: { todoId: todo.id.toString() },
+					json: {
+						done: !todo.done,
 					},
 				});
-				const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get, input: {} });
+				const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get });
 				startTransition(() => {
 					setTodos(allTodos);
 				});
@@ -79,13 +77,10 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 					setOptimisticTodos(arrayMove(optimisticTodos, fromTodoIdx, toTodoIdx));
 					await fetchApi({
 						endpoint: honoClient.api.todos["@arrayMove"].$patch,
-						input: {
-							json: { toId, fromId },
-						},
+						json: { toId, fromId },
 					});
 					const allTodos = await fetchApi({
 						endpoint: honoClient.api.todos.$get,
-						input: {},
 					});
 					startTransition(() => {
 						setTodos(allTodos);
@@ -101,11 +96,9 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 				setOptimisticTodos(optimisticTodos.filter(t => t.id !== todo.id));
 				await fetchApi({
 					endpoint: honoClient.api.todos.$delete,
-					input: {
-						json: { todoId: todo.id },
-					},
+					json: { todoId: todo.id },
 				});
-				const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get, input: {} });
+				const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get });
 
 				startTransition(() => {
 					setTodos(allTodos);
@@ -134,16 +127,14 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 
 			await fetchApi({
 				endpoint: honoClient.api.todos.$post,
-				input: {
-					json: {
-						headline,
-						description,
-						done: false,
-					},
+				json: {
+					headline,
+					description,
+					done: false,
 				},
 			});
 
-			const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get, input: {} });
+			const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get });
 			startTransition(() => {
 				setTodos(allTodos);
 			});

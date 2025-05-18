@@ -14,11 +14,10 @@ type HonoEndpoint = (args: any, options: any | undefined) => Promise<ClientRespo
 
 export async function fetchApi<TEndpoint extends HonoEndpoint>({
 	endpoint,
-	input,
+	...input
 }: {
 	endpoint: TEndpoint;
-	input: InferRequestType<TEndpoint>;
-}): Promise<InferBrandedString<InferResponseType<TEndpoint>>> {
+} & InferRequestType<TEndpoint>): Promise<InferBrandedString<InferResponseType<TEndpoint>>> {
 	const res = await endpoint(input, undefined);
 
 	if (!res.ok) throw new Error("Data fetching error");
