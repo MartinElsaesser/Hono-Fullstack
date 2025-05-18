@@ -7,7 +7,7 @@ import { pool } from "../db.js";
 void (async function connectToDbAndUploadSchema() {
 	const client = await pool.connect();
 
-	var sql = fs.readFileSync(import.meta.dirname + "/schema.sql", "utf8");
+	const sql = fs.readFileSync(`${import.meta.dirname}/schema.sql`, "utf8");
 
 	await client.query(sql);
 	await client.release();

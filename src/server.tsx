@@ -5,7 +5,6 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import socketIOServer from "./socket-io-server.js";
 import { reactRenderer } from "@hono/react-renderer";
-import TodoApp, { type Todo } from "./components/TodoApp.js";
 import Island from "./islands/server.js";
 import apiRouter from "./routers/apiRouter.js";
 import App from "./components/App.js";
@@ -39,14 +38,14 @@ app.get(
 );
 
 // slow down all api requests by 2 seconds
-app.use("/api/*", async (c, next) => {
+app.use("/api/*", async (_c, next) => {
 	console.log("wait");
 	await setTimeout(2000);
 	await next();
 });
 
 /* register routers */
-const apiRoutes = app.route("/api", apiRouter);
+const _apiRoutes = app.route("/api", apiRouter);
 
 /* adhoc routes */
 app.get("/", async c => {
@@ -60,26 +59,13 @@ app.get("/", async c => {
 	);
 });
 
-app.get("/todos", c => {
-	const todos: Todo[] = [
-		{ head: "Milk the cow", done: false },
-		{ head: "Watch Youtube", done: false },
-		{ head: "Build todo app", done: false },
-	];
-	return c.render(
-		<Island>
-			<TodoApp $todos={todos}></TodoApp>
-		</Island>
-	);
-});
-
 /* start up server */
 const port = 3000;
-const server = serve({ fetch: app.fetch, port }, info => {
+const server = serve({ fetch: app.fetch, port }, _info => {
 	console.log(`Server started on http://localhost:${port}`);
 });
 
 /* register socket.io */
 socketIOServer.attach(server);
 
-export type ApiRoutes = typeof apiRoutes;
+export type ApiRoutes = typeof _apiRoutes;

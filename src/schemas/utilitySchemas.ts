@@ -7,7 +7,7 @@ export const parsePositiveIntSchema = z
 	.regex(/^-?\d+$/)
 	.pipe(z.coerce.number().int().positive().safe());
 
-const parseIntSchema = z
+export const parseIntSchema = z
 	.string()
 	.regex(/^-?\d+$/)
 	.pipe(z.coerce.number().int().safe());

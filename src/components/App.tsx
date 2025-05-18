@@ -65,7 +65,7 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 			const { active, over } = event;
 			console.log("test");
 
-			if (active.id !== over.id) {
+			if (over?.id && active.id !== over.id) {
 				startTransition(async () => {
 					const fromId = active.id as number;
 					const toId = over!.id as number;

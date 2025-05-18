@@ -11,7 +11,7 @@ export function Switch({
 }) {
 	const className = round ? "slider round" : "slider";
 	return (
-		<label className={"switch " + size}>
+		<label className={`switch ${size}`}>
 			<input type="checkbox" checked={checked} onChange={onChange} />
 			<span className={className}></span>
 		</label>

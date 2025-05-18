@@ -10,7 +10,12 @@ import type { InferBrandedString } from "../routers/apiRouter.js";
 
 export const honoClient = hc<ApiRoutes>("http://localhost:3000");
 
-type HonoEndpoint = (args: any, options: any | undefined) => Promise<ClientResponse<unknown>>;
+type HonoEndpoint = (
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	args: any,
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	options: any | undefined
+) => Promise<ClientResponse<unknown>>;
 
 export async function fetchApi<TEndpoint extends HonoEndpoint>({
 	endpoint,
