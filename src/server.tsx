@@ -1,15 +1,16 @@
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
+
 import { cors } from "hono/cors";
 import socketIOServer from "./socket-io-server.js";
 import { reactRenderer } from "@hono/react-renderer";
 import TodoApp, { type Todo } from "./components/TodoApp.js";
-import Counter from "./components/Counter.js";
 import Island from "./islands/server.js";
 import apiRouter from "./routers/apiRouter.js";
 import App from "./components/App.js";
 import { getAllTodos } from "./db/services/TodoService.js";
+import { setTimeout } from "node:timers/promises";
 
 const app = new Hono();
 
@@ -36,6 +37,13 @@ app.get(
 		{ docType: true }
 	)
 );
+
+// slow down all api requests by 2 seconds
+app.use("/api/*", async (c, next) => {
+	console.log("wait");
+	await setTimeout(2000);
+	await next();
+});
 
 /* register routers */
 const apiRoutes = app.route("/api", apiRouter);
