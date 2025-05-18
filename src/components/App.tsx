@@ -19,16 +19,6 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Switch } from "./Switch.js";
 import type { SelectTodo } from "../db/schema/db-helper-types.js";
-import { parse } from "superjson";
-import type { InferResponseType } from "hono/client";
-
-async function fetchAllTodos() {
-	const allTodosResponse = await honoClient.api.todos.$get({});
-	if (!allTodosResponse.ok) throw new Error("Failed to fetch todos");
-	type todosType = InferResponseType<typeof honoClient.api.todos.$get>["_type"];
-	const allTodos = parse<todosType>(await allTodosResponse.text());
-	return allTodos;
-}
 
 function App({ $todos }: { $todos: SelectTodo[] }) {
 	const sensors = useSensors(

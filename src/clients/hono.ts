@@ -6,6 +6,7 @@ import {
 } from "hono/client";
 import type { ApiRoutes } from "../server.js";
 import { parse } from "superjson";
+import type { InferBrandedString } from "../routers/apiRouter.js";
 
 export const honoClient = hc<ApiRoutes>("http://localhost:3000");
 
@@ -17,11 +18,11 @@ export async function fetchApi<TEndpoint extends HonoEndpoint>({
 }: {
 	endpoint: TEndpoint;
 	input: InferRequestType<TEndpoint>;
-}): Promise<InferResponseType<TEndpoint>["_type"]> {
+}): Promise<InferBrandedString<InferResponseType<TEndpoint>>> {
 	const res = await endpoint(input, undefined);
 
 	if (!res.ok) throw new Error("Data fetching error");
-	type todosType = InferResponseType<typeof endpoint>["_type"];
+	type todosType = InferBrandedString<InferResponseType<TEndpoint>>;
 	const allTodos = parse<todosType>(await res.text());
 	return allTodos;
 }

@@ -14,7 +14,8 @@ import {
 import { stringify } from "superjson";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 
-type BrandedString<T> = string & { _type: T };
+export type BrandedString<T> = string & { _type: T };
+export type InferBrandedString<T extends string> = T extends BrandedString<infer R> ? R : never; // true
 function superjsonStringify<T>(data: T): BrandedString<T> {
 	return stringify(data) as BrandedString<T>;
 }
