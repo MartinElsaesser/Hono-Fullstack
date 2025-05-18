@@ -1,13 +1,24 @@
-import js from "@eslint/js";
+import eslint from "@eslint/js";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
+import { defineConfig } from "eslint/config";
 
+const config = defineConfig([
+	{
+		rules: {
+			eqeqeq: "off",
+			"no-unused-vars": "error",
+			"prefer-const": ["error", { ignoreReadBeforeAssign: true }],
+			"prefer-template": "error",
+		},
+	},
+]);
 export default tseslint.config(
 	{ ignores: ["dist"] },
 	{
-		extends: [js.configs.recommended, ...tseslint.configs.recommended],
+		extends: [eslint.configs.recommended, ...tseslint.configs.recommended, config],
 		files: ["**/*.{ts,tsx}"],
 		languageOptions: {
 			ecmaVersion: 2020,
@@ -34,6 +45,7 @@ export default tseslint.config(
 					ignoreRestSiblings: true,
 				},
 			],
+			"prefer-template": "error",
 		},
 	}
 );
