@@ -45,17 +45,19 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 			);
 			startTransition(async () => {
 				setOptimisticTodos(newOptimisticTodos);
-				const response = await honoClient.api.todos[":todoId"].$patch({
-					param: { todoId: todo.id.toString() },
-					json: {
-						done: !todo.done,
+				await fetchApi({
+					endpoint: honoClient.api.todos[":todoId"].$patch,
+					input: {
+						param: { todoId: todo.id.toString() },
+						json: {
+							done: !todo.done,
+						},
 					},
 				});
-				// if (!response.ok)
-				/*eslint prefer-template: "error"*/
-				throw new Error(`Failed to toggle todo done status for tod with id: ${todo.id}`);
 				const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get, input: {} });
-				setTodos(allTodos);
+				startTransition(() => {
+					setTodos(allTodos);
+				});
 			});
 		},
 		[optimisticTodos, setOptimisticTodos]
@@ -75,16 +77,19 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 					console.log(arrayMove(optimisticTodos, fromTodoIdx, toTodoIdx));
 
 					setOptimisticTodos(arrayMove(optimisticTodos, fromTodoIdx, toTodoIdx));
-
-					const response = await honoClient.api.todos["@arrayMove"].$patch({
-						json: { toId, fromId },
+					await fetchApi({
+						endpoint: honoClient.api.todos["@arrayMove"].$patch,
+						input: {
+							json: { toId, fromId },
+						},
 					});
-					if (!response.ok) throw new Error("Failed to swap todo positions");
 					const allTodos = await fetchApi({
 						endpoint: honoClient.api.todos.$get,
 						input: {},
 					});
-					setTodos(allTodos);
+					startTransition(() => {
+						setTodos(allTodos);
+					});
 				});
 			}
 		},
@@ -94,13 +99,17 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 		(todo: SelectTodo) => {
 			startTransition(async () => {
 				setOptimisticTodos(optimisticTodos.filter(t => t.id !== todo.id));
-
-				const deleteTodoResponse = await honoClient.api.todos.$delete({
-					json: { todoId: todo.id },
+				await fetchApi({
+					endpoint: honoClient.api.todos.$delete,
+					input: {
+						json: { todoId: todo.id },
+					},
 				});
-				if (!deleteTodoResponse.ok) throw new Error("Failed to delete todo");
 				const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get, input: {} });
-				setTodos(allTodos);
+
+				startTransition(() => {
+					setTodos(allTodos);
+				});
 			});
 		},
 		[optimisticTodos, setOptimisticTodos]
@@ -135,7 +144,9 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 			});
 
 			const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get, input: {} });
-			setTodos(allTodos);
+			startTransition(() => {
+				setTodos(allTodos);
+			});
 		});
 	}, [canCreateTodo, setOptimisticTodos, optimisticTodos, description, headline]);
 
