@@ -13,12 +13,15 @@ import {
 } from "../db/services/TodoService.js";
 import { stringify } from "superjson";
 
+function superjsonStringify<T>(data: T): string & { _type: T } {
+	return stringify(data) as string & { _type: T };
+}
+
 const apiRouter = new Hono()
 	// get all todos
 	.get("/todos", async c => {
 		const todos = await getAllTodos();
-		const stringifiedTodos = stringify(todos);
-		return c.text(stringifiedTodos as string & { _type: typeof todos });
+		return c.text(superjsonStringify(todos));
 	})
 	// get a specific todo
 	.get(
@@ -32,7 +35,7 @@ const apiRouter = new Hono()
 		async c => {
 			const { todoId } = await c.req.valid("param");
 			const todo = await getTodoById({ todoId });
-			return c.json(todo);
+			return c.text(superjsonStringify(todo));
 		}
 	)
 	// create a new todo
@@ -49,7 +52,7 @@ const apiRouter = new Hono()
 		async c => {
 			const insertTodo = await c.req.valid("json");
 			const todo = await createTodo({ todo: insertTodo });
-			return c.json(todo);
+			return c.text(superjsonStringify(todo));
 		}
 	)
 	// shift todo positions for sortable list
@@ -67,7 +70,7 @@ const apiRouter = new Hono()
 		async c => {
 			const { fromId, toId } = await c.req.valid("json");
 			const result = await moveTodoBetweenPositions({ fromId, toId });
-			return c.json(result);
+			return c.text(superjsonStringify(result));
 		}
 	)
 	// update a todo
@@ -88,7 +91,7 @@ const apiRouter = new Hono()
 			const { todoId } = await c.req.valid("param");
 			// throw new Error(`Cannot update todo ${todoId}`);
 			const todo = await updateTodo({ todoId, todo: todoData });
-			return c.json(todo);
+			return c.text(superjsonStringify(todo));
 		}
 	)
 
@@ -98,7 +101,7 @@ const apiRouter = new Hono()
 		const { todoId } = await c.req.valid("json");
 		const todo = await deleteTodo({ todoId });
 
-		return c.json(todo);
+		return c.text(superjsonStringify(todo));
 	});
 
 export default apiRouter;
