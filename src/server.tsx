@@ -41,7 +41,13 @@ const apiRoutes = app.route("/api", apiRouter);
 /* adhoc routes */
 app.get("/", async c => {
 	const todos = await getAllTodos();
-	return c.render(<App $todos={todos} />);
+	return c.render(
+		<div id="root">
+			<Island>
+				<App $todos={todos} />
+			</Island>
+		</div>
+	);
 });
 
 app.get("/todos", c => {

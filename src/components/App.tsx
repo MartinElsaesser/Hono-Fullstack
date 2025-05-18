@@ -20,8 +20,6 @@ import { CSS } from "@dnd-kit/utilities";
 import { Switch } from "./Switch.js";
 import type { SelectTodo } from "../db/schema/db-helper-types.js";
 
-const getAllTodos = honoClient.api.todos.$get;
-
 function App({ $todos }: { $todos: SelectTodo[] }) {
 	const sensors = useSensors(
 		useSensor(PointerSensor),
@@ -34,136 +32,70 @@ function App({ $todos }: { $todos: SelectTodo[] }) {
 	const [onlyUnfinishedTodos, setOnlyUnfinishedTodos] = useState(false);
 	const canCreateTodo = headline.length > 0 && description.length > 0;
 
-	const handleDoneChanged = useCallback(
-		async (todo: Todo) => {
-			const optimisticData = $todos.map(t => ({
-				...t,
-				done: t.id == todo.id ? !t.done : t.done,
-			}));
-			mutate(
-				async () => {
-					const response = await honoClient.api.todos[":todoId"].$patch({
-						param: { todoId: todo.id.toString() },
-						json: {
-							done: !todo.done,
-						},
-					});
-					const allTodosResponse = await honoClient.api.todos.$get({});
-					if (!response.ok || !allTodosResponse.ok)
-						throw new Error("Failed to update todo");
-					return await allTodosResponse.json();
-				},
-				{
-					optimisticData,
-					rollbackOnError(_error) {
-						alert("Failed to update todo");
-						return true;
-					},
-					revalidate: false,
-				}
-			);
-		},
-		[mutate, $todos]
-	);
-	const handleDragEnd = useCallback(
-		(event: DragEndEvent) => {
-			const { active, over } = event;
+	const [todos, setTodos] = useState($todos);
 
-			if (active.id !== over.id) {
-				const fromId = active.id as number;
-				const toId = over!.id as number;
+	const handleDoneChanged = useCallback(async (todo: SelectTodo) => {
+		const response = await honoClient.api.todos[":todoId"].$patch({
+			param: { todoId: todo.id.toString() },
+			json: {
+				done: !todo.done,
+			},
+		});
+		const allTodosResponse = await honoClient.api.todos.$get({});
+		if (!response.ok || !allTodosResponse.ok) throw new Error("Failed to update todo");
+		const allTodos = (await allTodosResponse.json()) as unknown as SelectTodo[];
+		setTodos(allTodos);
+	}, []);
+	const handleDragEnd = useCallback(async (event: DragEndEvent) => {
+		const { active, over } = event;
 
-				const fromTodoIdx = $todos.findIndex(todo => todo.id === fromId);
-				const toTodoIdx = $todos.findIndex(todo => todo.id === toId);
+		if (active.id !== over.id) {
+			const fromId = active.id as number;
+			const toId = over!.id as number;
 
-				mutate(
-					async () => {
-						const response = await honoClient.api.todos["@arrayMove"].$patch({
-							json: { toId, fromId },
-						});
-						const allTodosResponse = await honoClient.api.todos.$get({});
-						if (!response.ok || !allTodosResponse.ok)
-							throw new Error("Failed to swap todo positions");
-						return await allTodosResponse.json();
-					},
-					{
-						optimisticData: arrayMove($todos, fromTodoIdx, toTodoIdx),
-						rollbackOnError(_error) {
-							alert("Failed to swap todo positions");
-							return true;
-						},
-						revalidate: false,
-					}
-				);
-			}
-		},
-		[mutate, $todos]
-	);
-	const handleDelete = useCallback(
-		async (todo: Todo) => {
-			const optimisticData = $todos.filter(t => t.id !== todo.id);
-			mutate(
-				async () => {
-					const deleteTodoResponse = await honoClient.api.todos.$delete({
-						json: { todoId: todo.id },
-					});
-					const allTodosResponse = await honoClient.api.todos.$get({});
-					if (!deleteTodoResponse.ok || !allTodosResponse.ok)
-						throw new Error("Failed to update todo");
-					return await allTodosResponse.json();
-				},
-				{
-					optimisticData,
-					rollbackOnError(_error) {
-						alert("Failed to update todo");
-						return true;
-					},
-					revalidate: false,
-				}
-			);
-		},
-		[mutate, $todos]
-	);
+			// const fromTodoIdx = todos.findIndex(todo => todo.id === fromId);
+			// const toTodoIdx = todos.findIndex(todo => todo.id === toId);
+
+			const response = await honoClient.api.todos["@arrayMove"].$patch({
+				json: { toId, fromId },
+			});
+			const allTodosResponse = await honoClient.api.todos.$get({});
+			if (!response.ok || !allTodosResponse.ok)
+				throw new Error("Failed to swap todo positions");
+			const allTodos = (await allTodosResponse.json()) as unknown as SelectTodo[];
+			setTodos(allTodos);
+		}
+	}, []);
+	const handleDelete = useCallback(async (todo: SelectTodo) => {
+		const deleteTodoResponse = await honoClient.api.todos.$delete({
+			json: { todoId: todo.id },
+		});
+		const allTodosResponse = await honoClient.api.todos.$get({});
+		if (!deleteTodoResponse.ok || !allTodosResponse.ok)
+			throw new Error("Failed to update todo");
+		const allTodos = (await allTodosResponse.json()) as unknown as SelectTodo[];
+		setTodos(allTodos);
+	}, []);
 	const createTodo = useCallback(async () => {
 		if (!canCreateTodo) return;
-		const optimisticTodos = structuredClone($todos);
-		optimisticTodos.push({
-			id: optimisticTodos.length + 1,
-			created_at: new Date().toISOString(),
-			description,
-			done: false,
-			headline,
-			position: $todos.length + 1,
+
+		const createdTodoResponse = await honoClient.api.todos.$post({
+			json: {
+				headline,
+				description,
+				done: false,
+			},
 		});
 
-		mutate(
-			async () => {
-				const createdTodoResponse = await honoClient.api.todos.$post({
-					json: {
-						headline,
-						description,
-						done: false,
-					},
-				});
-
-				const allTodosResponse = await honoClient.api.todos.$get({});
-				if (!createdTodoResponse.ok || !allTodosResponse.ok)
-					throw new Error("Failed to update todo");
-				return await allTodosResponse.json();
-			},
-			{
-				optimisticData: optimisticTodos,
-				rollbackOnError(_error) {
-					alert("Failed to update todo");
-					return true;
-				},
-				revalidate: false,
-			}
-		);
+		const allTodosResponse = await honoClient.api.todos.$get({});
+		if (!createdTodoResponse.ok || !allTodosResponse.ok)
+			throw new Error("Failed to update todo");
+		const allTodos = (await allTodosResponse.json()) as unknown as SelectTodo[];
+		setTodos(allTodos);
 
 		setDescription("");
 		setHeadline("");
-	}, [canCreateTodo, description, headline, mutate, $todos]);
+	}, [canCreateTodo, description, headline]);
 
 	return (
 		<div className="app">
@@ -207,10 +139,10 @@ function App({ $todos }: { $todos: SelectTodo[] }) {
 				onDragEnd={handleDragEnd}
 			>
 				<SortableContext
-					items={$todos.map(todo => todo.id)}
+					items={todos.map(todo => todo.id)}
 					strategy={verticalListSortingStrategy}
 				>
-					{$todos
+					{todos
 						.filter(t => (onlyUnfinishedTodos ? t.done === false : true))
 						.map(todo => (
 							<SortableTodo
