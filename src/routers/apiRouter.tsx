@@ -11,12 +11,14 @@ import {
 	getTodoById,
 	moveTodoBetweenPositions,
 } from "../db/services/TodoService.js";
+import { stringify } from "superjson";
 
 const apiRouter = new Hono()
 	// get all todos
 	.get("/todos", async c => {
 		const todos = await getAllTodos();
-		return c.json(todos);
+		const stringifiedTodos = stringify(todos);
+		return c.text(stringifiedTodos as string & { _type: typeof todos });
 	})
 	// get a specific todo
 	.get(

@@ -19,6 +19,16 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Switch } from "./Switch.js";
 import type { SelectTodo } from "../db/schema/db-helper-types.js";
+import { parse } from "superjson";
+import type { InferRequestType, InferResponseType } from "hono/client";
+
+async function fetchAllTodos() {
+	const allTodosResponse = await honoClient.api.todos.$get({});
+	if (!allTodosResponse.ok) throw new Error("Failed to fetch todos");
+	type todosType = InferResponseType<typeof honoClient.api.todos.$get>["_type"];
+	const allTodos = parse<todosType>(await allTodosResponse.text());
+	return allTodos;
+}
 
 function App({ $todos }: { $todos: SelectTodo[] }) {
 	const sensors = useSensors(
@@ -41,9 +51,8 @@ function App({ $todos }: { $todos: SelectTodo[] }) {
 				done: !todo.done,
 			},
 		});
-		const allTodosResponse = await honoClient.api.todos.$get({});
-		if (!response.ok || !allTodosResponse.ok) throw new Error("Failed to update todo");
-		const allTodos = (await allTodosResponse.json()) as unknown as SelectTodo[];
+		if (!response.ok) throw new Error("Failed to toggle todo done status");
+		const allTodos = await fetchAllTodos();
 		setTodos(allTodos);
 	}, []);
 	const handleDragEnd = useCallback(async (event: DragEndEvent) => {
@@ -59,10 +68,8 @@ function App({ $todos }: { $todos: SelectTodo[] }) {
 			const response = await honoClient.api.todos["@arrayMove"].$patch({
 				json: { toId, fromId },
 			});
-			const allTodosResponse = await honoClient.api.todos.$get({});
-			if (!response.ok || !allTodosResponse.ok)
-				throw new Error("Failed to swap todo positions");
-			const allTodos = (await allTodosResponse.json()) as unknown as SelectTodo[];
+			if (!response.ok) throw new Error("Failed to swap todo positions");
+			const allTodos = await fetchAllTodos();
 			setTodos(allTodos);
 		}
 	}, []);
@@ -70,10 +77,8 @@ function App({ $todos }: { $todos: SelectTodo[] }) {
 		const deleteTodoResponse = await honoClient.api.todos.$delete({
 			json: { todoId: todo.id },
 		});
-		const allTodosResponse = await honoClient.api.todos.$get({});
-		if (!deleteTodoResponse.ok || !allTodosResponse.ok)
-			throw new Error("Failed to update todo");
-		const allTodos = (await allTodosResponse.json()) as unknown as SelectTodo[];
+		if (!deleteTodoResponse.ok) throw new Error("Failed to delete todo");
+		const allTodos = await fetchAllTodos();
 		setTodos(allTodos);
 	}, []);
 	const createTodo = useCallback(async () => {
@@ -87,10 +92,8 @@ function App({ $todos }: { $todos: SelectTodo[] }) {
 			},
 		});
 
-		const allTodosResponse = await honoClient.api.todos.$get({});
-		if (!createdTodoResponse.ok || !allTodosResponse.ok)
-			throw new Error("Failed to update todo");
-		const allTodos = (await allTodosResponse.json()) as unknown as SelectTodo[];
+		if (!createdTodoResponse.ok) throw new Error("Failed to delete todo");
+		const allTodos = await fetchAllTodos();
 		setTodos(allTodos);
 
 		setDescription("");
