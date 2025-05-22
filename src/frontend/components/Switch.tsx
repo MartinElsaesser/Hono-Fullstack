@@ -1,3 +1,4 @@
+import "./Switch.css";
 export function Switch({
 	round,
 	checked,

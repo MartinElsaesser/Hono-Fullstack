@@ -25,10 +25,11 @@ app.get(
 				<html>
 					<head>
 						<link rel="stylesheet" href="/static/css/index.css" />
+						<link rel="stylesheet" href="/static/build/client.css" />
 					</head>
 					<body>
 						{children}
-						<script type="module" src="/static/js/build/client.js"></script>
+						<script type="module" src="/static/build/client.js"></script>
 					</body>
 				</html>
 			);

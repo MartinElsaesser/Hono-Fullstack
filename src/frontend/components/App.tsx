@@ -20,6 +20,8 @@ import { CSS } from "@dnd-kit/utilities";
 import { Switch } from "./Switch.js";
 import type { SelectTodo } from "../../server/db/schema/db-helper-types.js";
 
+import "./App.css";
+
 export default function App({ $todos }: { $todos: SelectTodo[] }) {
 	const sensors = useSensors(
 		useSensor(PointerSensor),
