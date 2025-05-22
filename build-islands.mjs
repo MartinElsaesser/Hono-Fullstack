@@ -8,7 +8,7 @@ const buildOptions = {
 	minify: false,
 	sourcemap: "inline",
 	format: "esm",
-	outdir: "/static/js/build",
+	outdir: "/static/build",
 	chunkNames: "[name]-[hash]",
 	splitting: true,
 };
