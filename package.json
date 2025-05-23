@@ -15,7 +15,8 @@
 		"start": "node dist/server/server.js",
 		"prettier:fix": "prettier --write .",
 		"prettier:check": "prettier --check .",
-		"typescript:lint": "tsc --noEmit"
+		"typescript:lint": "tsc --noEmit",
+		"eslint:lint": "eslint ."
 	},
 	"dependencies": {
 		"@dnd-kit/core": "^6.3.1",

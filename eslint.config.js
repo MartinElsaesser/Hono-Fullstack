@@ -17,7 +17,7 @@ const config = defineConfig([
 	},
 ]);
 export default tseslint.config(
-	{ ignores: ["dist"] },
+	{ ignores: ["dist", "static"] },
 	{
 		extends: [eslint.configs.recommended, ...tseslint.configs.recommendedTypeChecked, config],
 		files: ["**/*.{ts,tsx}"],
@@ -47,7 +47,7 @@ export default tseslint.config(
 				},
 			],
 			"prefer-template": "error",
-			"@typescript-eslint/prefer-destructuring": "error",
+			"@typescript-eslint/prefer-destructuring": "warn",
 		},
 		languageOptions: {
 			parserOptions: {
