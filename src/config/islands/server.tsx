@@ -32,17 +32,19 @@ export default function Island({ children }: { children: React.ReactElement }) {
 		);
 	} catch (error: unknown) {
 		// display errors
-		let message = "";
+		let errorMessage = "";
 
 		if (typeof error === "string") {
-			message = error;
+			errorMessage = error;
 		} else if (error instanceof Error) {
-			message = error.message;
+			errorMessage = error.message;
+		} else {
+			errorMessage = "Unknown error";
 		}
 
 		return (
 			<div style={{ color: "red", background: "lightgrey" }}>
-				Island Error &gt;&gt; {message}
+				Island Error &gt;&gt; {errorMessage}
 			</div>
 		);
 	}
