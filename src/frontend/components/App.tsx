@@ -1,5 +1,4 @@
-import { startTransition, useCallback, useOptimistic, useState } from "react";
-import { fetchApi, honoClient } from "../clients/hono.js";
+import { useCallback, useState } from "react";
 import {
 	DndContext,
 	closestCenter,
@@ -10,7 +9,6 @@ import {
 	type DragEndEvent,
 } from "@dnd-kit/core";
 import {
-	arrayMove,
 	SortableContext,
 	sortableKeyboardCoordinates,
 	useSortable,
@@ -21,6 +19,7 @@ import { Switch } from "./Switch.js";
 import type { SelectTodo } from "../../server/db/schema/db-helper-types.js";
 
 import "./App.css";
+import { useTodos } from "../hooks/useTodos.js";
 
 export default function App({ $todos }: { $todos: SelectTodo[] }) {
 	const sensors = useSensors(
@@ -33,115 +32,22 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 	const [description, setDescription] = useState("");
 	const [onlyUnfinishedTodos, setOnlyUnfinishedTodos] = useState(false);
 	const canCreateTodo = headline.length > 0 && description.length > 0;
+	const { optimisticTodos, createTodo, deleteTodo, toggleTodoDone, switchTodoPosition } =
+		useTodos($todos);
 
-	const [todos, setTodos] = useState($todos);
-	const [optimisticTodos, setOptimisticTodos] = useOptimistic<SelectTodo[], SelectTodo[]>(
-		todos,
-		(_state, newOptimisticTodos) => newOptimisticTodos
-	);
-
-	const handleDoneChanged = useCallback(
-		async (todo: SelectTodo) => {
-			const newOptimisticTodos = optimisticTodos.map(t =>
-				t.id === todo.id ? { ...t, done: !t.done } : t
-			);
-			startTransition(async () => {
-				setOptimisticTodos(newOptimisticTodos);
-				await fetchApi({
-					endpoint: honoClient.api.todos[":todoId"].$patch,
-					param: { todoId: todo.id.toString() },
-					json: {
-						done: !todo.done,
-					},
-				});
-				const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get });
-				startTransition(() => {
-					setTodos(allTodos);
-				});
-			});
-		},
-		[optimisticTodos, setOptimisticTodos]
-	);
 	const handleDragEnd = useCallback(
 		(event: DragEndEvent) => {
 			const { active, over } = event;
 			console.log("test");
 
 			if (over?.id && active.id !== over.id) {
-				startTransition(async () => {
-					const fromId = active.id as number;
-					const toId = over!.id as number;
-
-					const fromTodoIdx = optimisticTodos.findIndex(todo => todo.id === fromId);
-					const toTodoIdx = optimisticTodos.findIndex(todo => todo.id === toId);
-					console.log(arrayMove(optimisticTodos, fromTodoIdx, toTodoIdx));
-
-					setOptimisticTodos(arrayMove(optimisticTodos, fromTodoIdx, toTodoIdx));
-					await fetchApi({
-						endpoint: honoClient.api.todos["@arrayMove"].$patch,
-						json: { toId, fromId },
-					});
-					const allTodos = await fetchApi({
-						endpoint: honoClient.api.todos.$get,
-					});
-					startTransition(() => {
-						setTodos(allTodos);
-					});
-				});
+				const fromId = active.id as number;
+				const toId = over.id as number;
+				switchTodoPosition({ fromId, toId });
 			}
 		},
-		[optimisticTodos, setOptimisticTodos]
+		[switchTodoPosition]
 	);
-	const handleDelete = useCallback(
-		(todo: SelectTodo) => {
-			startTransition(async () => {
-				setOptimisticTodos(optimisticTodos.filter(t => t.id !== todo.id));
-				await fetchApi({
-					endpoint: honoClient.api.todos.$delete,
-					json: { todoId: todo.id },
-				});
-				const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get });
-
-				startTransition(() => {
-					setTodos(allTodos);
-				});
-			});
-		},
-		[optimisticTodos, setOptimisticTodos]
-	);
-	const createTodo = useCallback(async () => {
-		if (!canCreateTodo) return;
-		setDescription("");
-		setHeadline("");
-
-		startTransition(async () => {
-			setOptimisticTodos([
-				...optimisticTodos,
-				{
-					created_at: new Date(),
-					description,
-					done: false,
-					headline,
-					id: optimisticTodos.length + 1,
-					position: optimisticTodos.length + 1,
-				},
-			]);
-
-			await fetchApi({
-				endpoint: honoClient.api.todos.$post,
-				json: {
-					headline,
-					description,
-					done: false,
-				},
-			});
-
-			const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get });
-			startTransition(() => {
-				setTodos(allTodos);
-			});
-		});
-	}, [canCreateTodo, setOptimisticTodos, optimisticTodos, description, headline]);
 
 	return (
 		<div className="app">
@@ -157,7 +63,12 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 					/>
 					<button
 						className="button__add"
-						onClick={() => createTodo()}
+						onClick={() => {
+							if (!canCreateTodo) return;
+							setDescription("");
+							setHeadline("");
+							createTodo({ description, headline });
+						}}
 						disabled={!canCreateTodo}
 					>
 						Create &#x27A4;
@@ -194,8 +105,8 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 							<SortableTodo
 								key={todo.id}
 								todo={todo}
-								onDoneChanged={handleDoneChanged}
-								onDelete={handleDelete}
+								onDoneChanged={todo => toggleTodoDone(todo)}
+								onDelete={todo => deleteTodo(todo)}
 							/>
 						))}
 				</SortableContext>
