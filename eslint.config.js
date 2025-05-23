@@ -12,13 +12,14 @@ const config = defineConfig([
 			"no-unused-vars": "off",
 			"prefer-const": ["error", { ignoreReadBeforeAssign: true }],
 			"prefer-template": "error",
+			"prefer-destructuring": "off",
 		},
 	},
 ]);
 export default tseslint.config(
 	{ ignores: ["dist"] },
 	{
-		extends: [eslint.configs.recommended, ...tseslint.configs.recommended, config],
+		extends: [eslint.configs.recommended, ...tseslint.configs.recommendedTypeChecked, config],
 		files: ["**/*.{ts,tsx}"],
 		languageOptions: {
 			ecmaVersion: 2020,
@@ -46,6 +47,13 @@ export default tseslint.config(
 				},
 			],
 			"prefer-template": "error",
+			"@typescript-eslint/prefer-destructuring": "error",
+		},
+		languageOptions: {
+			parserOptions: {
+				projectService: true,
+				tsconfigRootDir: import.meta.dirname,
+			},
 		},
 	}
 );
