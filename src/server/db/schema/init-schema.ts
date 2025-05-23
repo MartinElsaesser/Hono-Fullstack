@@ -10,7 +10,7 @@ void (async function connectToDbAndUploadSchema() {
 	const sql = fs.readFileSync(`${import.meta.dirname}/schema.sql`, "utf8");
 
 	await client.query(sql);
-	await client.release();
+	client.release();
 	await pool.end();
 
 	console.log("Initialized Database Schema");

@@ -6,7 +6,7 @@ export function useInput(initState: string) {
 	const [hook, setHook] = useState<string>(initState);
 
 	function handleChange(e: ChangeEvent<HTMLInputElement>) {
-		const target = e.target;
+		const { target } = e;
 		setHook(target.value);
 	}
 
