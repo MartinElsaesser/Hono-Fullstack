@@ -54,11 +54,11 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 			<h1 className="small center-align">Todo List</h1>
 			<fieldset>
 				<legend>Create a new todo</legend>
-				<div className="field small border label">
+				<div className="field small border label bottom-margin">
 					<input value={headline} onChange={e => setHeadline(e.target.value)} />
 					<label>Todo Headline</label>
 				</div>
-				<div className="field small border label textarea">
+				<div className="field small border label textarea bottom-margin">
 					<textarea
 						value={description}
 						onChange={e => setDescription(e.target.value)}
