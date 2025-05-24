@@ -50,7 +50,7 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 	);
 
 	return (
-		<main className="responsive">
+		<main className="responsive no-scroll">
 			<h1 className="small center-align">Todo List</h1>
 			<fieldset>
 				<legend>Create a new todo</legend>
@@ -66,7 +66,16 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 					<label>Todo Description</label>
 					{/* <span className="helper">Enter the todo description</span> */}
 				</div>
-				<button className="responsive small-round no-margin">
+				<button
+					className="responsive small-round no-margin"
+					onClick={() => {
+						if (!canCreateTodo) return;
+						setDescription("");
+						setHeadline("");
+						createTodo({ description, headline });
+					}}
+					disabled={!canCreateTodo}
+				>
 					Create new todo
 					<i className="small">arrow_right</i>
 				</button>
@@ -128,22 +137,23 @@ function SortableTodo({
 		transition,
 	};
 
-	const className = todo.done ? "medium-opacity" : "";
+	const className = todo.done ? "medium-opacity row" : "row";
 	return (
 		<div className={className} ref={setNodeRef} style={style}>
-			<div className="card--left">
+			<div className="max">
 				<h4 className="small">{todo.headline}</h4>
-				<div className="card--description">{todo.description} </div>
+				<pre className="no-styles">{todo.description} </pre>
 			</div>
-			<div className="middle-align">
+
+			<nav className="group no-space">
 				<Switch checked={todo.done} onChange={() => onDoneChanged(todo)}></Switch>
-				<button className="square error small" onClick={() => onDelete(todo)}>
+				<button className="no-round error small" onClick={() => onDelete(todo)}>
 					<i>delete</i>
 				</button>
-				<button className="square secondary small" {...listeners} {...attributes}>
+				<button className="no-round secondary small" {...listeners} {...attributes}>
 					<i>drag_indicator</i>
 				</button>
-			</div>
+			</nav>
 		</div>
 	);
 }
