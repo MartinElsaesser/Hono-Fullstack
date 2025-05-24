@@ -150,7 +150,11 @@ function SortableTodo({
 				<button className="no-round error small" onClick={() => onDelete(todo)}>
 					<i>delete</i>
 				</button>
-				<button className="no-round secondary small" {...listeners} {...attributes}>
+				<button
+					className="no-round secondary small no-touch-action"
+					{...listeners}
+					{...attributes}
+				>
 					<i>drag_indicator</i>
 				</button>
 			</nav>
