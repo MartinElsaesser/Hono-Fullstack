@@ -8,7 +8,8 @@ import type { ApiRoutes } from "../../server/server.js";
 import { parse } from "superjson";
 import type { InferBrandedString } from "../../server/routers/apiRouter.js";
 
-export const honoClient = hc<ApiRoutes>("http://localhost:3000");
+const origin = typeof window === "object" ? document.location.origin : "";
+export const honoClient = hc<ApiRoutes>(origin);
 
 type HonoEndpoint = (
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
