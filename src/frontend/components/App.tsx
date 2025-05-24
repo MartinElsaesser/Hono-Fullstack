@@ -74,7 +74,7 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 
 			<div className="field middle-align">
 				<div className="right-margin">
-					<div>Only show not done todos</div>
+					<div>Only show unfinished todos</div>
 				</div>
 				<Switch
 					checked={onlyUnfinishedTodos}
@@ -128,7 +128,7 @@ function SortableTodo({
 		transition,
 	};
 
-	const className = todo.done ? "card card__grab card__done" : "card card__grab";
+	const className = todo.done ? "medium-opacity" : "";
 	return (
 		<div className={className} ref={setNodeRef} style={style}>
 			<div className="card--left">
