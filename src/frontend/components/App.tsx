@@ -84,8 +84,6 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 			<div>
 				Only show not done todos &nbsp;
 				<Switch
-					round={true}
-					size="small"
 					checked={onlyUnfinishedTodos}
 					onChange={() => setOnlyUnfinishedTodos(!onlyUnfinishedTodos)}
 				></Switch>
@@ -144,12 +142,7 @@ function SortableTodo({
 				<div className="card--description">{todo.description} </div>
 			</div>
 			<div className="card--right">
-				<Switch
-					size="medium"
-					round={true}
-					checked={todo.done}
-					onChange={() => onDoneChanged(todo)}
-				></Switch>
+				<Switch checked={todo.done} onChange={() => onDoneChanged(todo)}></Switch>
 				<button className="button__symbol button__danger" onClick={() => onDelete(todo)}>
 					&#128465;
 				</button>
