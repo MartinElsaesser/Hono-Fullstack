@@ -65,11 +65,9 @@ const _apiRoutes = app.route("/api", apiRouter);
 app.get("/", async c => {
 	const todos = await getAllTodos();
 	return c.render(
-		<div id="root">
-			<Island>
-				<App $todos={todos} />
-			</Island>
-		</div>
+		<Island>
+			<App $todos={todos} />
+		</Island>
 	);
 });
 
