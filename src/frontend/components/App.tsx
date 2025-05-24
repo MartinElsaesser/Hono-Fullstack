@@ -72,7 +72,7 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 				</button>
 			</fieldset>
 
-			<div className="field middle-align">
+			<div className="field middle-align no-margin">
 				<div className="right-margin">
 					<div>Only show unfinished todos</div>
 				</div>
@@ -135,7 +135,7 @@ function SortableTodo({
 				<h4 className="small">{todo.headline}</h4>
 				<div className="card--description">{todo.description} </div>
 			</div>
-			<div className="card--right">
+			<div className="middle-align">
 				<Switch checked={todo.done} onChange={() => onDoneChanged(todo)}></Switch>
 				<button className="square error small" onClick={() => onDelete(todo)}>
 					<i>delete</i>
