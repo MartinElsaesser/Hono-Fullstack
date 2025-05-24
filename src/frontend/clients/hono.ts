@@ -7,8 +7,9 @@ import {
 import type { ApiRoutes } from "../../server/server.js";
 import { parse } from "superjson";
 import type { InferBrandedString } from "../../server/routers/apiRouter.js";
+import { runsOnServer } from "../../lib/runsOnServer.js";
 
-const origin = typeof window === "object" ? document.location.origin : "";
+const origin = runsOnServer() ? "" : document.location.origin;
 export const honoClient = hc<ApiRoutes>(origin);
 
 type HonoEndpoint = (
