@@ -50,44 +50,38 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 	);
 
 	return (
-		<div className="app">
-			<h1>Todo List</h1>
-			<div className="card card__create">
-				<div>Create a new todo</div>
-				<div className="input-grow">
-					<input
-						type="text"
-						placeholder="Enter the todo headline"
-						value={headline}
-						onChange={e => setHeadline(e.target.value)}
-					/>
-					<button
-						className="button__add"
-						onClick={() => {
-							if (!canCreateTodo) return;
-							setDescription("");
-							setHeadline("");
-							createTodo({ description, headline });
-						}}
-						disabled={!canCreateTodo}
-					>
-						Create &#x27A4;
-					</button>
+		<main className="responsive">
+			<h1 className="small center-align">Todo List</h1>
+			<fieldset>
+				<legend>Create a new todo</legend>
+				<div className="field small border label">
+					<input value={headline} onChange={e => setHeadline(e.target.value)} />
+					<label>Todo Headline</label>
 				</div>
-				<textarea
-					placeholder="Enter the todo description"
-					value={description}
-					onChange={e => setDescription(e.target.value)}
-				></textarea>
-			</div>
+				<div className="field small border label textarea">
+					<textarea
+						value={description}
+						onChange={e => setDescription(e.target.value)}
+					></textarea>
+					<label>Todo Description</label>
+					{/* <span className="helper">Enter the todo description</span> */}
+				</div>
+				<button className="responsive small-round no-margin">
+					Create new todo
+					<i className="small">arrow_right</i>
+				</button>
+			</fieldset>
 
-			<div>
-				Only show not done todos &nbsp;
+			<div className="field middle-align">
+				<div className="right-margin">
+					<div>Only show not done todos</div>
+				</div>
 				<Switch
 					checked={onlyUnfinishedTodos}
 					onChange={() => setOnlyUnfinishedTodos(!onlyUnfinishedTodos)}
 				></Switch>
 			</div>
+
 			<DndContext
 				sensors={sensors}
 				collisionDetection={closestCenter}
@@ -109,7 +103,7 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 						))}
 				</SortableContext>
 			</DndContext>
-		</div>
+		</main>
 	);
 }
 
@@ -138,18 +132,16 @@ function SortableTodo({
 	return (
 		<div className={className} ref={setNodeRef} style={style}>
 			<div className="card--left">
-				<h3>{todo.headline}</h3>
+				<h4 className="small">{todo.headline}</h4>
 				<div className="card--description">{todo.description} </div>
 			</div>
 			<div className="card--right">
 				<Switch checked={todo.done} onChange={() => onDoneChanged(todo)}></Switch>
-				<button className="button__symbol button__danger" onClick={() => onDelete(todo)}>
-					&#128465;
+				<button className="square error small" onClick={() => onDelete(todo)}>
+					<i>delete</i>
 				</button>
-				<button {...listeners} {...attributes} className="button__symbol button__handle">
-					<svg viewBox="0 0 20 20" width="12">
-						<path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z"></path>
-					</svg>
+				<button className="square secondary small" {...listeners} {...attributes}>
+					<i>drag_indicator</i>
 				</button>
 			</div>
 		</div>
