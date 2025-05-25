@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, type PropsWithChildren } from "react";
 import {
 	DndContext,
 	closestCenter,
@@ -20,6 +20,7 @@ import type { SelectTodo } from "../../server/db/schema/db-helper-types.js";
 
 import "./App.css";
 import { useTodos } from "../hooks/useTodos.js";
+import { useSnackbar } from "../hooks/useSnackbar.js";
 
 export default function App({ $todos }: { $todos: SelectTodo[] }) {
 	const sensors = useSensors(
@@ -48,9 +49,11 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 		},
 		[switchTodoPosition]
 	);
+	const { Snackbar, showSnackbar } = useSnackbar();
 
 	return (
 		<main className="responsive no-scroll">
+			{Snackbar}
 			<h1 className="small center-align">Todo List</h1>
 			<fieldset>
 				<legend>Create a new todo</legend>
@@ -72,7 +75,28 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 						if (!canCreateTodo) return;
 						setDescription("");
 						setHeadline("");
-						createTodo({ description, headline });
+						createTodo({
+							description,
+							headline,
+							onSuccess: () => {
+								// Optionally, you can show a snackbar or some feedback here
+								showSnackbar({
+									duration: 3000,
+									position: "top",
+									children: "Todo created successfully!",
+								});
+							},
+							onError: error => {
+								// Handle error, e.g., show a snackbar with the error message
+								showSnackbar({
+									duration: 5000,
+									style: "error",
+									position: "top",
+									children:
+										"Could not save todo on the server, please try again later.",
+								});
+							},
+						});
 					}}
 					disabled={!canCreateTodo}
 				>
