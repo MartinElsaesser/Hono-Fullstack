@@ -8,14 +8,15 @@
 		"db-init-schema": "tsx src/server/db/schema/init-schema.ts",
 		"client-dev": "node build-islands.mjs --watch",
 		"client-build": "node build-islands.mjs",
-		"server-dev": "tsx watch --clear-screen=false src/server/server.tsx",
+		"server-dev": "tsx watch --clear-screen=false --loader=./css-loader.js src/server/server.tsx",
 		"server-build": "tsc",
 		"dev": "concurrently -n client,server💻 \"npm:client-dev\" \"npm:server-dev\"",
 		"build": "npm run client-build && npm run server-build",
 		"start": "node dist/server/server.js",
 		"prettier:fix": "prettier --write .",
 		"prettier:check": "prettier --check .",
-		"typescript:lint": "tsc --noEmit"
+		"typescript:lint": "tsc --noEmit",
+		"eslint:lint": "eslint ."
 	},
 	"dependencies": {
 		"@dnd-kit/core": "^6.3.1",

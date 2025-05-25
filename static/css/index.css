@@ -1,3 +1,10 @@
-@import url("./General.css");
-@import url("./Switch.css");
-@import url("./App.css");
+* {
+	box-sizing: border-box;
+}
+html,
+body {
+	width: 100%;
+	height: 100%;
+	font-family:
+		"Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande", "Lucida Sans", Arial, sans-serif;
+}

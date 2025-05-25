@@ -1,5 +1,4 @@
-import { startTransition, useCallback, useOptimistic, useState } from "react";
-import { fetchApi, honoClient } from "../clients/hono.js";
+import { useCallback, useState } from "react";
 import {
 	DndContext,
 	closestCenter,
@@ -10,7 +9,6 @@ import {
 	type DragEndEvent,
 } from "@dnd-kit/core";
 import {
-	arrayMove,
 	SortableContext,
 	sortableKeyboardCoordinates,
 	useSortable,
@@ -19,6 +17,9 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Switch } from "./Switch.js";
 import type { SelectTodo } from "../../server/db/schema/db-helper-types.js";
+
+import "./App.css";
+import { useTodos } from "../hooks/useTodos.js";
 
 export default function App({ $todos }: { $todos: SelectTodo[] }) {
 	const sensors = useSensors(
@@ -31,152 +32,65 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 	const [description, setDescription] = useState("");
 	const [onlyUnfinishedTodos, setOnlyUnfinishedTodos] = useState(false);
 	const canCreateTodo = headline.length > 0 && description.length > 0;
+	const { optimisticTodos, createTodo, deleteTodo, toggleTodoDone, switchTodoPosition } =
+		useTodos($todos);
 
-	const [todos, setTodos] = useState($todos);
-	const [optimisticTodos, setOptimisticTodos] = useOptimistic<SelectTodo[], SelectTodo[]>(
-		todos,
-		(_state, newOptimisticTodos) => newOptimisticTodos
-	);
-
-	const handleDoneChanged = useCallback(
-		async (todo: SelectTodo) => {
-			const newOptimisticTodos = optimisticTodos.map(t =>
-				t.id === todo.id ? { ...t, done: !t.done } : t
-			);
-			startTransition(async () => {
-				setOptimisticTodos(newOptimisticTodos);
-				await fetchApi({
-					endpoint: honoClient.api.todos[":todoId"].$patch,
-					param: { todoId: todo.id.toString() },
-					json: {
-						done: !todo.done,
-					},
-				});
-				const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get });
-				startTransition(() => {
-					setTodos(allTodos);
-				});
-			});
-		},
-		[optimisticTodos, setOptimisticTodos]
-	);
 	const handleDragEnd = useCallback(
 		(event: DragEndEvent) => {
 			const { active, over } = event;
 			console.log("test");
 
 			if (over?.id && active.id !== over.id) {
-				startTransition(async () => {
-					const fromId = active.id as number;
-					const toId = over!.id as number;
-
-					const fromTodoIdx = optimisticTodos.findIndex(todo => todo.id === fromId);
-					const toTodoIdx = optimisticTodos.findIndex(todo => todo.id === toId);
-					console.log(arrayMove(optimisticTodos, fromTodoIdx, toTodoIdx));
-
-					setOptimisticTodos(arrayMove(optimisticTodos, fromTodoIdx, toTodoIdx));
-					await fetchApi({
-						endpoint: honoClient.api.todos["@arrayMove"].$patch,
-						json: { toId, fromId },
-					});
-					const allTodos = await fetchApi({
-						endpoint: honoClient.api.todos.$get,
-					});
-					startTransition(() => {
-						setTodos(allTodos);
-					});
-				});
+				const fromId = active.id as number;
+				const toId = over.id as number;
+				switchTodoPosition({ fromId, toId });
 			}
 		},
-		[optimisticTodos, setOptimisticTodos]
+		[switchTodoPosition]
 	);
-	const handleDelete = useCallback(
-		(todo: SelectTodo) => {
-			startTransition(async () => {
-				setOptimisticTodos(optimisticTodos.filter(t => t.id !== todo.id));
-				await fetchApi({
-					endpoint: honoClient.api.todos.$delete,
-					json: { todoId: todo.id },
-				});
-				const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get });
-
-				startTransition(() => {
-					setTodos(allTodos);
-				});
-			});
-		},
-		[optimisticTodos, setOptimisticTodos]
-	);
-	const createTodo = useCallback(async () => {
-		if (!canCreateTodo) return;
-		setDescription("");
-		setHeadline("");
-
-		startTransition(async () => {
-			setOptimisticTodos([
-				...optimisticTodos,
-				{
-					created_at: new Date(),
-					description,
-					done: false,
-					headline,
-					id: optimisticTodos.length + 1,
-					position: optimisticTodos.length + 1,
-				},
-			]);
-
-			await fetchApi({
-				endpoint: honoClient.api.todos.$post,
-				json: {
-					headline,
-					description,
-					done: false,
-				},
-			});
-
-			const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get });
-			startTransition(() => {
-				setTodos(allTodos);
-			});
-		});
-	}, [canCreateTodo, setOptimisticTodos, optimisticTodos, description, headline]);
 
 	return (
-		<div className="app">
-			<h1>Todo List</h1>
-			<div className="card card__create">
-				<div>Create a new todo</div>
-				<div className="input-grow">
-					<input
-						type="text"
-						placeholder="Enter the todo headline"
-						value={headline}
-						onChange={e => setHeadline(e.target.value)}
-					/>
-					<button
-						className="button__add"
-						onClick={() => createTodo()}
-						disabled={!canCreateTodo}
-					>
-						Create &#x27A4;
-					</button>
+		<main className="responsive no-scroll">
+			<h1 className="small center-align">Todo List</h1>
+			<fieldset>
+				<legend>Create a new todo</legend>
+				<div className="field small border label bottom-margin">
+					<input value={headline} onChange={e => setHeadline(e.target.value)} />
+					<label>Todo Headline</label>
 				</div>
-				<textarea
-					placeholder="Enter the todo description"
-					value={description}
-					onChange={e => setDescription(e.target.value)}
-				></textarea>
-			</div>
+				<div className="field small border label textarea bottom-margin">
+					<textarea
+						value={description}
+						onChange={e => setDescription(e.target.value)}
+					></textarea>
+					<label>Todo Description</label>
+					{/* <span className="helper">Enter the todo description</span> */}
+				</div>
+				<button
+					className="responsive small-round no-margin"
+					onClick={() => {
+						if (!canCreateTodo) return;
+						setDescription("");
+						setHeadline("");
+						createTodo({ description, headline });
+					}}
+					disabled={!canCreateTodo}
+				>
+					Create new todo
+					<i className="small">arrow_right</i>
+				</button>
+			</fieldset>
 
-			<div>
-				Only show not done todos &nbsp;
+			<div className="field middle-align no-margin">
+				<div className="right-margin">
+					<div>Only show unfinished todos</div>
+				</div>
 				<Switch
-					round={true}
-					size="small"
 					checked={onlyUnfinishedTodos}
 					onChange={() => setOnlyUnfinishedTodos(!onlyUnfinishedTodos)}
 				></Switch>
 			</div>
+
 			<DndContext
 				sensors={sensors}
 				collisionDetection={closestCenter}
@@ -192,13 +106,13 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 							<SortableTodo
 								key={todo.id}
 								todo={todo}
-								onDoneChanged={handleDoneChanged}
-								onDelete={handleDelete}
+								onDoneChanged={todo => toggleTodoDone(todo)}
+								onDelete={todo => deleteTodo(todo)}
 							/>
 						))}
 				</SortableContext>
 			</DndContext>
-		</div>
+		</main>
 	);
 }
 
@@ -223,29 +137,27 @@ function SortableTodo({
 		transition,
 	};
 
-	const className = todo.done ? "card card__grab card__done" : "card card__grab";
+	const className = todo.done ? "medium-opacity row" : "row";
 	return (
 		<div className={className} ref={setNodeRef} style={style}>
-			<div className="card--left">
-				<h3>{todo.headline}</h3>
-				<div className="card--description">{todo.description} </div>
+			<div className="max">
+				<h4 className="small">{todo.headline}</h4>
+				<pre className="no-styles">{todo.description} </pre>
 			</div>
-			<div className="card--right">
-				<Switch
-					size="medium"
-					round={true}
-					checked={todo.done}
-					onChange={() => onDoneChanged(todo)}
-				></Switch>
-				<button className="button__symbol button__danger" onClick={() => onDelete(todo)}>
-					&#128465;
+
+			<nav className="group no-space">
+				<Switch checked={todo.done} onChange={() => onDoneChanged(todo)}></Switch>
+				<button className="no-round error small" onClick={() => onDelete(todo)}>
+					<i>delete</i>
 				</button>
-				<button {...listeners} {...attributes} className="button__symbol button__handle">
-					<svg viewBox="0 0 20 20" width="12">
-						<path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z"></path>
-					</svg>
+				<button
+					className="no-round secondary small no-touch-action"
+					{...listeners}
+					{...attributes}
+				>
+					<i>drag_indicator</i>
 				</button>
-			</div>
+			</nav>
 		</div>
 	);
 }

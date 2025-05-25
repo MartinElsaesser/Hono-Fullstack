@@ -29,5 +29,5 @@ lerna-debug.log*
 .DS_Store
 
 # build
-static/js/build
+static/build
 dist/

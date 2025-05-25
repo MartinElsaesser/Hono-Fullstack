@@ -24,11 +24,25 @@ app.get(
 			return (
 				<html>
 					<head>
+						<link
+							href="https://cdn.jsdelivr.net/npm/beercss@3.11.10/dist/cdn/beer.min.css"
+							rel="stylesheet"
+						/>
+						<script
+							type="module"
+							src="https://cdn.jsdelivr.net/npm/beercss@3.11.10/dist/cdn/beer.min.js"
+						></script>
+						<script
+							type="module"
+							src="https://cdn.jsdelivr.net/npm/material-dynamic-colors@1.1.2/dist/cdn/material-dynamic-colors.min.js"
+						></script>
 						<link rel="stylesheet" href="/static/css/index.css" />
+						<link rel="stylesheet" href="/static/build/client.css" />
+						<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 					</head>
 					<body>
 						{children}
-						<script type="module" src="/static/js/build/client.js"></script>
+						<script type="module" src="/static/build/client.js"></script>
 					</body>
 				</html>
 			);
@@ -51,11 +65,9 @@ const _apiRoutes = app.route("/api", apiRouter);
 app.get("/", async c => {
 	const todos = await getAllTodos();
 	return c.render(
-		<div id="root">
-			<Island>
-				<App $todos={todos} />
-			</Island>
-		</div>
+		<Island>
+			<App $todos={todos} />
+		</Island>
 	);
 });
 

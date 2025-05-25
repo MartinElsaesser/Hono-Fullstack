@@ -43,7 +43,7 @@ const apiRouter = new Hono()
 			})
 		),
 		async c => {
-			const { todoId } = await c.req.valid("param");
+			const { todoId } = c.req.valid("param");
 			const todo = await getTodoById({ todoId });
 			return json(c, todo);
 		}
@@ -60,7 +60,7 @@ const apiRouter = new Hono()
 			})
 		),
 		async c => {
-			const insertTodo = await c.req.valid("json");
+			const insertTodo = c.req.valid("json");
 			const todo = await createTodo({ todo: insertTodo });
 			return json(c, todo);
 		}
@@ -78,7 +78,7 @@ const apiRouter = new Hono()
 			})
 		),
 		async c => {
-			const { fromId, toId } = await c.req.valid("json");
+			const { fromId, toId } = c.req.valid("json");
 			const result = await moveTodoBetweenPositions({ fromId, toId });
 			return json(c, result);
 		}
@@ -97,8 +97,8 @@ const apiRouter = new Hono()
 			})
 		),
 		async c => {
-			const todoData = await c.req.valid("json");
-			const { todoId } = await c.req.valid("param");
+			const todoData = c.req.valid("json");
+			const { todoId } = c.req.valid("param");
 			const todo = await updateTodo({ todoId, todo: todoData });
 			return json(c, todo);
 		}
@@ -107,7 +107,7 @@ const apiRouter = new Hono()
 	// delete a todo
 	.delete("/todos", zValidator("json", z.object({ todoId: z.number() })), async c => {
 		// get validated data
-		const { todoId } = await c.req.valid("json");
+		const { todoId } = c.req.valid("json");
 		const todo = await deleteTodo({ todoId });
 		return json(c, todo);
 	});
