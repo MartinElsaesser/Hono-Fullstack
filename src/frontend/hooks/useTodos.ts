@@ -30,7 +30,15 @@ export function useTodos($todos: SelectTodo[]) {
 		[optimisticTodos, setOptimisticTodos]
 	);
 	const createTodo = useCallback(
-		({ description, headline }: Pick<InsertTodo, "description" | "headline">) => {
+		({
+			description,
+			headline,
+			onSuccess,
+			onError,
+		}: Pick<InsertTodo, "description" | "headline"> & {
+			onSuccess?: (newTodo: SelectTodo) => void;
+			onError?: (error: Error) => void;
+		}) => {
 			startTransition(async () => {
 				setOptimisticTodos([
 					...optimisticTodos,
@@ -44,18 +52,29 @@ export function useTodos($todos: SelectTodo[]) {
 					},
 				]);
 
-				await fetchApi({
-					endpoint: honoClient.api.todos.$post,
-					json: {
-						headline,
-						description,
-						done: false,
-					},
-				});
+				let newTodo;
+				try {
+					newTodo = await fetchApi({
+						endpoint: honoClient.api.todos.$post,
+						json: {
+							headline,
+							description,
+							done: false,
+						},
+					});
+				} catch (unknownError) {
+					const error =
+						unknownError instanceof Error ? unknownError : (
+							new Error("Could not create Todo")
+						);
+					if (onError) onError(error);
+					throw error;
+				}
 
 				const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get });
 				startTransition(() => {
 					setTodos(allTodos);
+					if (onSuccess) onSuccess(newTodo);
 				});
 			});
 		},
