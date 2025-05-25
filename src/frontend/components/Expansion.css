@@ -1,0 +1,18 @@
+:root {
+	interpolate-size: allow-keywords;
+}
+
+details::details-content {
+	transition:
+		block-size 1s ease-in-out,
+		content-visibility 1s ease-in-out;
+	block-size: 0;
+	overflow: hidden;
+
+	transition-behavior: allow-discrete;
+	/* content-visibility: unset !important; */
+}
+
+details[open]::details-content {
+	block-size: auto;
+}
