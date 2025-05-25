@@ -20,7 +20,7 @@ import type { SelectTodo } from "../../server/db/schema/db-helper-types.js";
 
 import "./App.css";
 import { useTodos } from "../hooks/useTodos.js";
-import { useSnackbar } from "../hooks/useSnackbar.js";
+import { Snackbar, useSnackbar } from "../hooks/useSnackbar.js";
 
 export default function App({ $todos }: { $todos: SelectTodo[] }) {
 	const sensors = useSensors(
@@ -49,11 +49,11 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 		},
 		[switchTodoPosition]
 	);
-	const { Snackbar, showSnackbar } = useSnackbar();
+	const { showSnackbar, snackbarState } = useSnackbar();
 
 	return (
 		<main className="responsive no-scroll">
-			{Snackbar}
+			<Snackbar {...snackbarState} />
 			<h1 className="small center-align">Todo List</h1>
 			<fieldset>
 				<legend>Create a new todo</legend>

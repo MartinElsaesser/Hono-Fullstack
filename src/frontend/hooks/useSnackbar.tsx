@@ -24,7 +24,6 @@ export function useSnackbar() {
 	return {
 		snackbarState,
 		showSnackbar,
-		Snackbar: <Snackbar {...snackbarState} />,
 	};
 }
 
