@@ -1,6 +1,9 @@
 {
 	"name": "hono-islands",
 	"type": "module",
+	"engines": {
+		"node": ">=v22.15.0"
+	},
 	"scripts": {
 		"db-init": "npm run db-init-schema && npm run db-seed",
 		"db-seed": "tsx src/server/db/seed/index.ts",
