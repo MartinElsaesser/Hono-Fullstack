@@ -4,9 +4,6 @@ import type { SelectTodo, InsertTodo } from "../../server/db/schema/db-helper-ty
 import { fetchApi, honoClient } from "../clients/hono.js";
 import useSWR from "swr";
 export function useTodos($todos: SelectTodo[]) {
-	// initialize state
-	console.log("useTodos called");
-
 	const {
 		data: todos,
 		mutate,
