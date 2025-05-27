@@ -1,5 +1,5 @@
 import { arrayMove } from "@dnd-kit/sortable";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import type { SelectTodo, InsertTodo } from "../../server/db/schema/db-helper-types.js";
 import { fetchApi, honoClient } from "../clients/hono.js";
 import useSWR from "swr";
@@ -24,6 +24,14 @@ export function useTodos($todos: SelectTodo[]) {
 		}
 	);
 
+	const defaultMutateOptions = useMemo(
+		() => ({
+			populateCache: false,
+			revalidate: true,
+		}),
+		[]
+	);
+
 	const deleteTodo = useCallback(
 		async (todo: SelectTodo) => {
 			// start
@@ -39,13 +47,12 @@ export function useTodos($todos: SelectTodo[]) {
 				},
 				{
 					optimisticData,
-					populateCache: false,
-					revalidate: true,
+					...defaultMutateOptions,
 				}
 			);
 			// end
 		},
-		[mutate, todos]
+		[defaultMutateOptions, mutate, todos]
 	);
 	const createTodo = useCallback(
 		async ({
@@ -88,13 +95,12 @@ export function useTodos($todos: SelectTodo[]) {
 						if (onError) onError(error);
 						return true;
 					},
-					populateCache: false,
-					revalidate: true,
+					...defaultMutateOptions,
 				}
 			);
 			// end
 		},
-		[mutate, todos]
+		[defaultMutateOptions, mutate, todos]
 	);
 	const toggleTodoDone = useCallback(
 		async (todo: SelectTodo) => {
@@ -116,13 +122,12 @@ export function useTodos($todos: SelectTodo[]) {
 				},
 				{
 					optimisticData,
-					populateCache: false,
-					revalidate: true,
+					...defaultMutateOptions,
 				}
 			);
 			// end
 		},
-		[mutate, todos]
+		[defaultMutateOptions, mutate, todos]
 	);
 	const switchTodoPosition = useCallback(
 		async ({ fromId, toId }: { fromId: number; toId: number }) => {
@@ -140,13 +145,12 @@ export function useTodos($todos: SelectTodo[]) {
 				},
 				{
 					optimisticData: arrayMove(todos, fromTodoIdx, toTodoIdx),
-					populateCache: false,
-					revalidate: true,
+					...defaultMutateOptions,
 				}
 			);
 			// end
 		},
-		[mutate, todos]
+		[defaultMutateOptions, mutate, todos]
 	);
 
 	return {
