@@ -1,60 +1,76 @@
 import { arrayMove } from "@dnd-kit/sortable";
-import { useState, useOptimistic, useCallback, startTransition } from "react";
+import { useCallback } from "react";
 import type { SelectTodo, InsertTodo } from "../../server/db/schema/db-helper-types.js";
 import { fetchApi, honoClient } from "../clients/hono.js";
-
+import useSWR from "swr";
 export function useTodos($todos: SelectTodo[]) {
 	// initialize state
-	const [todos, setTodos] = useState($todos);
-	const [optimisticTodos, setOptimisticTodos] = useOptimistic<SelectTodo[], SelectTodo[]>(
-		todos,
-		(_state, newOptimisticTodos) => newOptimisticTodos
-	);
+	console.log("useTodos called");
 
-	// define functions
-	const deleteTodo = useCallback(
-		(todo: SelectTodo) => {
-			startTransition(async () => {
-				setOptimisticTodos(optimisticTodos.filter(t => t.id !== todo.id));
-				await fetchApi({
-					endpoint: honoClient.api.todos.$delete,
-					json: { todoId: todo.id },
-				});
-				const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get });
-
-				startTransition(() => {
-					setTodos(allTodos);
-				});
+	const {
+		data: todos,
+		mutate,
+		...rest
+	} = useSWR(
+		"fetchTodos",
+		async () => {
+			return fetchApi({
+				endpoint: honoClient.api.todos.$get,
 			});
 		},
-		[optimisticTodos, setOptimisticTodos]
+		{
+			fallbackData: $todos,
+			revalidateOnMount: false,
+		}
+	);
+
+	const deleteTodo = useCallback(
+		async (todo: SelectTodo) => {
+			// start
+			const optimisticData = todos.filter(t => t.id !== todo.id);
+
+			await mutate(
+				async () => {
+					await fetchApi({
+						endpoint: honoClient.api.todos.$delete,
+						json: { todoId: todo.id },
+					});
+					return undefined;
+				},
+				{
+					optimisticData,
+					populateCache: false,
+					revalidate: true,
+				}
+			);
+			// end
+		},
+		[mutate, todos]
 	);
 	const createTodo = useCallback(
-		({
+		async ({
 			description,
 			headline,
 			onSuccess,
 			onError,
 		}: Pick<InsertTodo, "description" | "headline"> & {
 			onSuccess?: (newTodo: SelectTodo) => void;
-			onError?: (error: Error) => void;
+			onError?: (error: unknown) => void;
 		}) => {
-			startTransition(async () => {
-				setOptimisticTodos([
-					...optimisticTodos,
-					{
-						created_at: new Date(),
-						description,
-						done: false,
-						headline,
-						id: optimisticTodos.length + 1,
-						position: optimisticTodos.length + 1,
-					},
-				]);
+			// start
+			const optimisticTodos = structuredClone(todos);
+			optimisticTodos.push({
+				id: optimisticTodos.length + 1,
+				created_at: new Date(),
+				description,
+				done: false,
+				headline,
+				position: todos.length + 1,
+			});
 
-				let newTodo;
-				try {
-					newTodo = await fetchApi({
+			await mutate(
+				async () => {
+					const newTodo = await fetchApi({
 						endpoint: honoClient.api.todos.$post,
 						json: {
 							headline,
@@ -62,71 +78,80 @@ export function useTodos($todos: SelectTodo[]) {
 							done: false,
 						},
 					});
-				} catch (unknownError) {
-					const error =
-						unknownError instanceof Error ? unknownError : (
-							new Error("Could not create Todo")
-						);
-					if (onError) onError(error);
-					throw error;
-				}
 
-				const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get });
-				startTransition(() => {
-					setTodos(allTodos);
 					if (onSuccess) onSuccess(newTodo);
-				});
-			});
+					return undefined;
+				},
+				{
+					optimisticData: optimisticTodos,
+					rollbackOnError(error) {
+						if (onError) onError(error);
+						return true;
+					},
+					populateCache: false,
+					revalidate: true,
+				}
+			);
+			// end
 		},
-		[setOptimisticTodos, optimisticTodos]
+		[mutate, todos]
 	);
 	const toggleTodoDone = useCallback(
-		(todo: SelectTodo) => {
-			const newOptimisticTodos = optimisticTodos.map(t =>
-				t.id === todo.id ? { ...t, done: !t.done } : t
+		async (todo: SelectTodo) => {
+			// start
+			const optimisticData = todos.map(t => ({
+				...t,
+				done: t.id == todo.id ? !t.done : t.done,
+			}));
+			await mutate(
+				async () => {
+					await fetchApi({
+						endpoint: honoClient.api.todos[":todoId"].$patch,
+						param: { todoId: todo.id.toString() },
+						json: {
+							done: !todo.done,
+						},
+					});
+					return undefined;
+				},
+				{
+					optimisticData,
+					populateCache: false,
+					revalidate: true,
+				}
 			);
-			startTransition(async () => {
-				setOptimisticTodos(newOptimisticTodos);
-				await fetchApi({
-					endpoint: honoClient.api.todos[":todoId"].$patch,
-					param: { todoId: todo.id.toString() },
-					json: {
-						done: !todo.done,
-					},
-				});
-				const allTodos = await fetchApi({ endpoint: honoClient.api.todos.$get });
-				startTransition(() => {
-					setTodos(allTodos);
-				});
-			});
+			// end
 		},
-		[optimisticTodos, setOptimisticTodos]
+		[mutate, todos]
 	);
 	const switchTodoPosition = useCallback(
-		({ fromId, toId }: { fromId: number; toId: number }) => {
-			startTransition(async () => {
-				const fromTodoIdx = optimisticTodos.findIndex(todo => todo.id === fromId);
-				const toTodoIdx = optimisticTodos.findIndex(todo => todo.id === toId);
-				console.log(arrayMove(optimisticTodos, fromTodoIdx, toTodoIdx));
+		async ({ fromId, toId }: { fromId: number; toId: number }) => {
+			// start
+			const fromTodoIdx = todos.findIndex(todo => todo.id === fromId);
+			const toTodoIdx = todos.findIndex(todo => todo.id === toId);
 
-				setOptimisticTodos(arrayMove(optimisticTodos, fromTodoIdx, toTodoIdx));
-				await fetchApi({
-					endpoint: honoClient.api.todos["@arrayMove"].$patch,
-					json: { toId, fromId },
-				});
-				const allTodos = await fetchApi({
-					endpoint: honoClient.api.todos.$get,
-				});
-				startTransition(() => {
-					setTodos(allTodos);
-				});
-			});
+			await mutate(
+				async () => {
+					await fetchApi({
+						endpoint: honoClient.api.todos["@arrayMove"].$patch,
+						json: { toId, fromId },
+					});
+					return undefined;
+				},
+				{
+					optimisticData: arrayMove(todos, fromTodoIdx, toTodoIdx),
+					populateCache: false,
+					revalidate: true,
+				}
+			);
+			// end
 		},
-		[optimisticTodos, setOptimisticTodos]
+		[mutate, todos]
 	);
 
 	return {
-		optimisticTodos,
+		...rest,
+		todos,
 		createTodo,
 		deleteTodo,
 		toggleTodoDone,
