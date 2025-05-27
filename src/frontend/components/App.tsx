@@ -40,7 +40,6 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 	return (
 		<main className="responsive no-scroll">
 			<Snackbar {...snackbarState} />
-			<h1 className="small center-align">Todo List</h1>
 			<fieldset>
 				<legend>Create a new todo</legend>
 				<div className="field small border label bottom-margin">
