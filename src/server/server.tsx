@@ -9,7 +9,7 @@ import Island from "../config/islands/server.js";
 import App from "../frontend/components/App.js";
 import { getAllTodos } from "./db/services/TodoService.js";
 import { setTimeout } from "node:timers/promises";
-import { trpcServer } from "@hono/trpc-server"; // Deno 'npm:@hono/trpc-server'
+import { trpcServer } from "@hono/trpc-server";
 import { appRouter } from "./trpc/index.js";
 
 const app = new Hono();
@@ -60,7 +60,7 @@ app.use("/trpc/*", async (c, next) => {
 });
 
 app.use(
-	"/trpc/*",
+	"/trpc/*", // TODO: does this work with nested routes?
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call
 	trpcServer({
 		router: appRouter,
