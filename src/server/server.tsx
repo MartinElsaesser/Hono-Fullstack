@@ -62,6 +62,7 @@ app.use("/api/*", async (_c, next) => {
 
 app.use(
 	"/trpc/*",
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call
 	trpcServer({
 		router: appRouter,
 	})
