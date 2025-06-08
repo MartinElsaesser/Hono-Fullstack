@@ -26,7 +26,10 @@
 		"@dnd-kit/sortable": "^10.0.0",
 		"@hono/node-server": "^1.14.2",
 		"@hono/react-renderer": "^1.0.1",
+		"@hono/trpc-server": "^0.3.4",
 		"@hono/zod-validator": "^0.5.0",
+		"@trpc/client": "^11.3.1",
+		"@trpc/server": "^11.3.1",
 		"concurrently": "^9.1.2",
 		"esbuild": "^0.25.4",
 		"hono": "^4.7.10",
@@ -37,6 +40,7 @@
 		"react-dom": "^19.1.0",
 		"socket.io": "^4.8.1",
 		"superjson": "^2.2.2",
+		"swr": "^2.3.3",
 		"zod": "^3.25.28"
 	},
 	"devDependencies": {

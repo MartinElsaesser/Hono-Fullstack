@@ -1,8 +1,8 @@
 import { arrayMove } from "@dnd-kit/sortable";
 import { useCallback, useMemo } from "react";
 import type { SelectTodo, InsertTodo } from "../../server/db/schema/db-helper-types.js";
-import { fetchApi, honoClient } from "../clients/hono.js";
 import useSWR from "swr";
+import { trpc } from "../clients/trpc.js";
 export function useTodos($todos: SelectTodo[]) {
 	const {
 		data: todos,
@@ -11,9 +11,7 @@ export function useTodos($todos: SelectTodo[]) {
 	} = useSWR(
 		"fetchTodos",
 		async () => {
-			return fetchApi({
-				endpoint: honoClient.api.todos.$get,
-			});
+			return trpc.getAllTodos.query();
 		},
 		{
 			fallbackData: $todos,
@@ -36,10 +34,7 @@ export function useTodos($todos: SelectTodo[]) {
 
 			await mutate(
 				async () => {
-					await fetchApi({
-						endpoint: honoClient.api.todos.$delete,
-						json: { todoId: todo.id },
-					});
+					await trpc.deleteTodo.mutate({ todoId: todo.id });
 					return undefined;
 				},
 				{
@@ -74,13 +69,10 @@ export function useTodos($todos: SelectTodo[]) {
 
 			await mutate(
 				async () => {
-					const newTodo = await fetchApi({
-						endpoint: honoClient.api.todos.$post,
-						json: {
-							headline,
-							description,
-							done: false,
-						},
+					const newTodo = await trpc.createTodo.mutate({
+						headline,
+						description,
+						done: false,
 					});
 
 					if (onSuccess) onSuccess(newTodo);
@@ -108,12 +100,9 @@ export function useTodos($todos: SelectTodo[]) {
 			}));
 			await mutate(
 				async () => {
-					await fetchApi({
-						endpoint: honoClient.api.todos[":todoId"].$patch,
-						param: { todoId: todo.id.toString() },
-						json: {
-							done: !todo.done,
-						},
+					await trpc.updateTodo.mutate({
+						todoId: todo.id,
+						partialTodo: { done: !todo.done },
 					});
 					return undefined;
 				},
@@ -134,9 +123,9 @@ export function useTodos($todos: SelectTodo[]) {
 
 			await mutate(
 				async () => {
-					await fetchApi({
-						endpoint: honoClient.api.todos["@arrayMove"].$patch,
-						json: { toId, fromId },
+					await trpc.moveTodoBetweenPositions.mutate({
+						fromId,
+						toId,
 					});
 					return undefined;
 				},

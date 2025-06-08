@@ -6,10 +6,11 @@ import { cors } from "hono/cors";
 import socketIOServer from "./socket-io-server.js";
 import { reactRenderer } from "@hono/react-renderer";
 import Island from "../config/islands/server.js";
-import apiRouter from "./routers/apiRouter.js";
 import App from "../frontend/components/App.js";
 import { getAllTodos } from "./db/services/TodoService.js";
 import { setTimeout } from "node:timers/promises";
+import { trpcServer } from "@hono/trpc-server";
+import { appRouter } from "./trpc/index.js";
 
 const app = new Hono();
 
@@ -24,9 +25,18 @@ app.get(
 			return (
 				<html>
 					<head>
-						<link href="https://cdn.jsdelivr.net/npm/beercss@3.11.10/dist/cdn/beer.min.css" rel="stylesheet" />
-						<script type="module" src="https://cdn.jsdelivr.net/npm/beercss@3.11.10/dist/cdn/beer.min.js"></script>
-						<script type="module" src="https://cdn.jsdelivr.net/npm/material-dynamic-colors@1.1.2/dist/cdn/material-dynamic-colors.min.js"></script>
+						<link
+							href="https://cdn.jsdelivr.net/npm/beercss@3.11.10/dist/cdn/beer.min.css"
+							rel="stylesheet"
+						/>
+						<script
+							type="module"
+							src="https://cdn.jsdelivr.net/npm/beercss@3.11.10/dist/cdn/beer.min.js"
+						></script>
+						<script
+							type="module"
+							src="https://cdn.jsdelivr.net/npm/material-dynamic-colors@1.1.2/dist/cdn/material-dynamic-colors.min.js"
+						></script>
 						<link rel="stylesheet" href="/static/css/index.css" />
 						<link rel="stylesheet" href="/static/build/client.css" />
 						<meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -43,14 +53,19 @@ app.get(
 );
 
 // slow down all api requests by 2 seconds
-app.use("/api/*", async (_c, next) => {
-	console.log("wait");
+app.use("/trpc/*", async (c, next) => {
+	console.log(`pause 2 seconds for`, c.req.path);
 	await setTimeout(2000);
 	await next();
 });
 
-/* register routers */
-const _apiRoutes = app.route("/api", apiRouter);
+app.use(
+	"/trpc/*", // TODO: does this work with nested routes?
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call
+	trpcServer({
+		router: appRouter,
+	})
+);
 
 /* adhoc routes */
 app.get("/", async c => {
@@ -80,5 +95,3 @@ const server = serve({ fetch: app.fetch, port }, _info => {
 
 /* register socket.io */
 socketIOServer.attach(server);
-
-export type ApiRoutes = typeof _apiRoutes;
