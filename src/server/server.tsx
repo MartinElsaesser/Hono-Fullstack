@@ -10,6 +10,8 @@ import apiRouter from "./routers/apiRouter.js";
 import App from "../frontend/components/App.js";
 import { getAllTodos } from "./db/services/TodoService.js";
 import { setTimeout } from "node:timers/promises";
+import { trpcServer } from "@hono/trpc-server"; // Deno 'npm:@hono/trpc-server'
+import { appRouter } from "./trpc/index.js";
 
 const app = new Hono();
 
@@ -24,9 +26,18 @@ app.get(
 			return (
 				<html>
 					<head>
-						<link href="https://cdn.jsdelivr.net/npm/beercss@3.11.10/dist/cdn/beer.min.css" rel="stylesheet" />
-						<script type="module" src="https://cdn.jsdelivr.net/npm/beercss@3.11.10/dist/cdn/beer.min.js"></script>
-						<script type="module" src="https://cdn.jsdelivr.net/npm/material-dynamic-colors@1.1.2/dist/cdn/material-dynamic-colors.min.js"></script>
+						<link
+							href="https://cdn.jsdelivr.net/npm/beercss@3.11.10/dist/cdn/beer.min.css"
+							rel="stylesheet"
+						/>
+						<script
+							type="module"
+							src="https://cdn.jsdelivr.net/npm/beercss@3.11.10/dist/cdn/beer.min.js"
+						></script>
+						<script
+							type="module"
+							src="https://cdn.jsdelivr.net/npm/material-dynamic-colors@1.1.2/dist/cdn/material-dynamic-colors.min.js"
+						></script>
 						<link rel="stylesheet" href="/static/css/index.css" />
 						<link rel="stylesheet" href="/static/build/client.css" />
 						<meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -48,6 +59,13 @@ app.use("/api/*", async (_c, next) => {
 	await setTimeout(2000);
 	await next();
 });
+
+app.use(
+	"/trpc/*",
+	trpcServer({
+		router: appRouter,
+	})
+);
 
 /* register routers */
 const _apiRoutes = app.route("/api", apiRouter);
