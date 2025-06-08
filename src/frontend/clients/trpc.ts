@@ -1,6 +1,7 @@
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import type { AppRouter } from "../../server/trpc/index.js";
 import { runsOnServer } from "../../lib/runsOnServer.js";
+import superjson from "superjson";
 
 const origin = runsOnServer() ? "" : document.location.origin;
 
@@ -10,6 +11,7 @@ export const trpc = createTRPCClient<AppRouter>({
 	links: [
 		httpBatchLink({
 			url: `${origin}/trpc`,
+			transformer: superjson,
 		}),
 	],
 });
