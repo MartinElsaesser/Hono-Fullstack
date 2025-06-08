@@ -6,7 +6,6 @@ import { cors } from "hono/cors";
 import socketIOServer from "./socket-io-server.js";
 import { reactRenderer } from "@hono/react-renderer";
 import Island from "../config/islands/server.js";
-import apiRouter from "./routers/apiRouter.js";
 import App from "../frontend/components/App.js";
 import { getAllTodos } from "./db/services/TodoService.js";
 import { setTimeout } from "node:timers/promises";
@@ -68,9 +67,6 @@ app.use(
 	})
 );
 
-/* register routers */
-const _apiRoutes = app.route("/api", apiRouter);
-
 /* adhoc routes */
 app.get("/", async c => {
 	const todos = await getAllTodos();
@@ -99,5 +95,3 @@ const server = serve({ fetch: app.fetch, port }, _info => {
 
 /* register socket.io */
 socketIOServer.attach(server);
-
-export type ApiRoutes = typeof _apiRoutes;
