@@ -11,7 +11,7 @@ export function useTodos($todos: SelectTodo[]) {
 	} = useSWR(
 		"fetchTodos",
 		async () => {
-			return trpc.getAllTodos.query();
+			return trpc.todoApp.getAllTodos.query();
 		},
 		{
 			fallbackData: $todos,
@@ -34,7 +34,7 @@ export function useTodos($todos: SelectTodo[]) {
 
 			await mutate(
 				async () => {
-					await trpc.deleteTodo.mutate({ todoId: todo.id });
+					await trpc.todoApp.deleteTodo.mutate({ todoId: todo.id });
 					return undefined;
 				},
 				{
@@ -69,7 +69,7 @@ export function useTodos($todos: SelectTodo[]) {
 
 			await mutate(
 				async () => {
-					const newTodo = await trpc.createTodo.mutate({
+					const newTodo = await trpc.todoApp.createTodo.mutate({
 						headline,
 						description,
 						done: false,
@@ -100,7 +100,7 @@ export function useTodos($todos: SelectTodo[]) {
 			}));
 			await mutate(
 				async () => {
-					await trpc.updateTodo.mutate({
+					await trpc.todoApp.updateTodo.mutate({
 						todoId: todo.id,
 						partialTodo: { done: !todo.done },
 					});
@@ -123,7 +123,7 @@ export function useTodos($todos: SelectTodo[]) {
 
 			await mutate(
 				async () => {
-					await trpc.moveTodoBetweenPositions.mutate({
+					await trpc.todoApp.moveTodoBetweenPositions.mutate({
 						fromId,
 						toId,
 					});
