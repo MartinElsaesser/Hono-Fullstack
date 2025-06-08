@@ -53,8 +53,8 @@ app.get(
 );
 
 // slow down all api requests by 2 seconds
-app.use("/api/*", async (_c, next) => {
-	console.log("wait");
+app.use("/trpc/*", async (c, next) => {
+	console.log(`pause 2 seconds for`, c.req.path);
 	await setTimeout(2000);
 	await next();
 });
