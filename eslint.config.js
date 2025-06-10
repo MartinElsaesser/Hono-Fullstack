@@ -48,6 +48,12 @@ export default tseslint.config(
 			],
 			"prefer-template": "error",
 			"@typescript-eslint/prefer-destructuring": "warn",
+			"@typescript-eslint/no-misused-promises": [
+				"error",
+				{
+					checksVoidReturn: false,
+				},
+			],
 		},
 		languageOptions: {
 			parserOptions: {
