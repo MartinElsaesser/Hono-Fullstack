@@ -11,12 +11,17 @@ import { getAllTodos } from "./db/services/TodoService.js";
 import { setTimeout } from "node:timers/promises";
 import { trpcServer } from "@hono/trpc-server";
 import { appRouter } from "./trpc/index.js";
+import { auth } from "../lib/auth.js";
+import Login from "../frontend/components/Login.js";
+import SignUp from "../frontend/components/SignUp.js";
 
 const app = new Hono();
 
 /* register middleware */
 app.use(cors({ origin: "*" }));
 app.get("/static/*", serveStatic({ root: "./" }));
+
+app.on(["POST", "GET"], "/api/auth/**", c => auth.handler(c.req.raw));
 
 app.get(
 	"/*",
@@ -84,6 +89,22 @@ app.get("/", async c => {
 				<App $todos={todos} />
 			</Island>
 		</>
+	);
+});
+
+app.get("/login", async c => {
+	return c.render(
+		<Island>
+			<Login></Login>
+		</Island>
+	);
+});
+
+app.get("/sign-up", async c => {
+	return c.render(
+		<Island>
+			<SignUp></SignUp>
+		</Island>
 	);
 });
 
