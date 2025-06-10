@@ -1,6 +1,7 @@
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
+import { createMiddleware } from "hono/factory";
 
 import { cors } from "hono/cors";
 import socketIOServer from "./socket-io-server.js";
@@ -72,8 +73,18 @@ app.use(
 	})
 );
 
+const loginGuard = createMiddleware(async (c, next) => {
+	const session = await auth.api.getSession({
+		headers: c.req.raw.headers,
+	});
+	if (!session || !session.user) {
+		return c.redirect("/login");
+	}
+	await next();
+});
+
 /* adhoc routes */
-app.get("/", async c => {
+app.get("/", loginGuard, async c => {
 	const todos = await getAllTodos();
 	return c.render(
 		<>
