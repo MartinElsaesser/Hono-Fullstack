@@ -5,7 +5,7 @@ import { Snackbar, useSnackbar } from "../hooks/useSnackbar.js";
 export default function SignUp() {
 	const { showSnackbar, snackbarState } = useSnackbar();
 	const emailInput = useInput("test@gmail.com");
-	const passwordInput = useInput("Watson");
+	const passwordInput = useInput("mysecretpassword");
 
 	const { data } = authClient.useSession();
 	console.log(data);

@@ -5,7 +5,7 @@ export default function SignUp() {
 	const { showSnackbar, snackbarState } = useSnackbar();
 	const emailInput = useInput("test@gmail.com");
 	const nameInput = useInput("Michael");
-	const passwordInput = useInput("Watson");
+	const passwordInput = useInput("mysecretpassword");
 
 	const { data } = authClient.useSession();
 	console.log(data);
