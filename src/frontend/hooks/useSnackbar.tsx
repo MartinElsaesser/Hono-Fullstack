@@ -1,5 +1,7 @@
 import { useState, useCallback, type PropsWithChildren } from "react";
 
+const delay = (time: number) => new Promise((resolve, _reject) => setTimeout(resolve, time));
+
 export function useSnackbar() {
 	const [snackbarState, setSnackbarState] = useState<SnackbarProps>({
 		active: false,
@@ -8,16 +10,15 @@ export function useSnackbar() {
 	});
 
 	const showSnackbar = useCallback(
-		({
+		async ({
 			children,
 			duration,
 			style,
 			position,
 		}: Omit<SnackbarProps, "active"> & { duration: number }) => {
 			setSnackbarState({ active: true, children, style, position });
-			setTimeout(() => {
-				setSnackbarState(prev => ({ ...prev, active: false }));
-			}, duration);
+			await delay(duration);
+			setSnackbarState(prev => ({ ...prev, active: false }));
 		},
 		[setSnackbarState]
 	);
