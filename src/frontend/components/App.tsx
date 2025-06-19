@@ -23,6 +23,8 @@ import { useTodos } from "../hooks/useTodos.js";
 import { Snackbar, useSnackbar } from "../hooks/useSnackbar.js";
 
 export default function App({ $todos }: { $todos: SelectTodo[] }) {
+	console.log("App loaded");
+	
 	const sensors = useSensors(
 		useSensor(PointerSensor),
 		useSensor(KeyboardSensor, {
@@ -38,7 +40,6 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 	const handleDragEnd = useCallback(
 		(event: DragEndEvent) => {
 			const { active, over } = event;
-			console.log("test");
 
 			if (over?.id && active.id !== over.id) {
 				const fromId = active.id as number;
