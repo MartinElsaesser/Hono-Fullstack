@@ -13,6 +13,11 @@ import { appRouter } from "./trpc/index.js";
 const app = new Hono();
 
 /* register middleware */
+
+// TODO: uncomment to enable gzip compression
+// import { compress } from "hono/compress";
+// app.use("*", compress({ encoding: "gzip" }));
+
 app.use(cors({ origin: "*" }));
 app.get("/static/*", serveStatic({ root: "./" }));
 
