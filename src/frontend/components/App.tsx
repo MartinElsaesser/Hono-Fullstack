@@ -1,6 +1,19 @@
 import { useCallback, useState } from "react";
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
-import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import {
+	DndContext,
+	closestCenter,
+	KeyboardSensor,
+	PointerSensor,
+	useSensor,
+	useSensors,
+	type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+	SortableContext,
+	sortableKeyboardCoordinates,
+	useSortable,
+	verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Switch } from "./Switch.js";
 import type { SelectTodo } from "../../server/db/schema/db-helper-types.js";
@@ -47,7 +60,10 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 					<label>Todo Headline</label>
 				</div>
 				<div className="field small border label textarea bottom-margin">
-					<textarea value={description} onChange={e => setDescription(e.target.value)}></textarea>
+					<textarea
+						value={description}
+						onChange={e => setDescription(e.target.value)}
+					></textarea>
 					<label>Todo Description</label>
 					{/* <span className="helper">Enter the todo description</span> */}
 				</div>
@@ -62,7 +78,7 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 							headline,
 							onSuccess: () => {
 								// Optionally, you can show a snackbar or some feedback here
-								showSnackbar({
+								void showSnackbar({
 									duration: 3000,
 									position: "top",
 									children: "Todo created successfully!",
@@ -70,11 +86,12 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 							},
 							onError: _error => {
 								// Handle error, e.g., show a snackbar with the error message
-								showSnackbar({
+								void showSnackbar({
 									duration: 5000,
 									style: "error",
 									position: "top",
-									children: "Could not save todo on the server, please try again later.",
+									children:
+										"Could not save todo on the server, please try again later.",
 								});
 							},
 						});
@@ -90,15 +107,30 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 				<div className="right-margin">
 					<div>Only show unfinished todos</div>
 				</div>
-				<Switch checked={onlyUnfinishedTodos} onChange={() => setOnlyUnfinishedTodos(!onlyUnfinishedTodos)}></Switch>
+				<Switch
+					checked={onlyUnfinishedTodos}
+					onChange={() => setOnlyUnfinishedTodos(!onlyUnfinishedTodos)}
+				></Switch>
 			</div>
 
-			<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-				<SortableContext items={todos.map(todo => todo.id)} strategy={verticalListSortingStrategy}>
+			<DndContext
+				sensors={sensors}
+				collisionDetection={closestCenter}
+				onDragEnd={handleDragEnd}
+			>
+				<SortableContext
+					items={todos.map(todo => todo.id)}
+					strategy={verticalListSortingStrategy}
+				>
 					{todos
 						.filter(t => (onlyUnfinishedTodos ? t.done === false : true))
 						.map(todo => (
-							<SortableTodo key={todo.id} todo={todo} onDoneChanged={todo => void toggleTodoDone(todo)} onDelete={todo => void deleteTodo(todo)} />
+							<SortableTodo
+								key={todo.id}
+								todo={todo}
+								onDoneChanged={todo => void toggleTodoDone(todo)}
+								onDelete={todo => void deleteTodo(todo)}
+							/>
 						))}
 				</SortableContext>
 			</DndContext>
@@ -106,7 +138,15 @@ export default function App({ $todos }: { $todos: SelectTodo[] }) {
 	);
 }
 
-function SortableTodo({ todo, onDoneChanged, onDelete }: { todo: SelectTodo; onDoneChanged: (todo: SelectTodo) => void; onDelete: (todo: SelectTodo) => void }) {
+function SortableTodo({
+	todo,
+	onDoneChanged,
+	onDelete,
+}: {
+	todo: SelectTodo;
+	onDoneChanged: (todo: SelectTodo) => void;
+	onDelete: (todo: SelectTodo) => void;
+}) {
 	const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
 		id: todo.id,
 		data: {
@@ -132,7 +172,11 @@ function SortableTodo({ todo, onDoneChanged, onDelete }: { todo: SelectTodo; onD
 				<button className="no-round error small" onClick={() => onDelete(todo)}>
 					<i>delete</i>
 				</button>
-				<button className="no-round secondary small no-touch-action" {...listeners} {...attributes}>
+				<button
+					className="no-round secondary small no-touch-action"
+					{...listeners}
+					{...attributes}
+				>
 					<i>drag_indicator</i>
 				</button>
 			</nav>

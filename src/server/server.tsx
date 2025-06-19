@@ -3,12 +3,10 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 
 import { cors } from "hono/cors";
-import socketIOServer from "./socket-io-server.js";
 import { reactRenderer } from "@hono/react-renderer";
 import Island from "../config/islands/server.js";
 import App from "../frontend/components/App.js";
 import { getAllTodos } from "./db/services/TodoService.js";
-import { setTimeout } from "node:timers/promises";
 import { trpcServer } from "@hono/trpc-server";
 import { appRouter } from "./trpc/index.js";
 
@@ -52,13 +50,6 @@ app.get(
 	)
 );
 
-// slow down all api requests by 2 seconds
-app.use("/trpc/*", async (c, next) => {
-	console.log(`pause 2 seconds for`, c.req.path);
-	await setTimeout(2000);
-	await next();
-});
-
 app.use(
 	"/trpc/*", // TODO: does this work with nested routes?
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call
@@ -67,7 +58,7 @@ app.use(
 	})
 );
 
-/* adhoc routes */
+/* todo app route */
 app.get("/", async c => {
 	const todos = await getAllTodos();
 	return c.render(
@@ -92,6 +83,3 @@ const port = 3000;
 const server = serve({ fetch: app.fetch, port }, _info => {
 	console.log(`Server started on http://localhost:${port}`);
 });
-
-/* register socket.io */
-socketIOServer.attach(server);
